@@ -28,7 +28,7 @@ Via *Configureren* voeg je laadpalen toe, bewerk of verwijder je ze en pas je de
 | **Beschikbaarheid visueel** | één icoon per laadpunt, bijv. `🅿️/⛔` (🅿️ beschikbaar, ⛔ bezet of gesloten, ⚫ storing, onbekend of verouderd) |
 | **Beschikbaar** | binary_sensor: minstens één laadpunt beschikbaar |
 | **Laadpunt 1 - 17kW**, … | binary_sensor per laadpunt: *Bezet*, *Vrij* of *Onbekend* |
-| **Laadpaal op kaart** | device_tracker, genoemd naar straat en huisnummer, met de status van *Laadpunten* en een marker: groen = alles beschikbaar, gedeeltelijk, rood = niets beschikbaar, grijs vraagteken = onbekend of verouderd |
+| **Laadpaal op kaart** | device_tracker, genoemd naar straat en huisnummer, attribuut `status` = `2/4 beschikbaar`, met een marker: twee vinkjes = 2 of meer laadpunten vrij, één vinkje = 1 vrij, rood kruis = niets vrij of gesloten, grijs vraagteken = onbekend of verouderd |
 | **Personen nabij**, **Zone radius** | personen binnen de zone |
 | **Vernieuwen**, **Vernieuwingsfrequentie** | knop en keuzelijst (standaard *Nooit*) |
 | **Vernieuwen in zone**, **Alleen vernieuwen bij naderen**, **Vernieuwingsfrequentie in zone**, **Vernieuwen in zone stoppen na** | zie *Verversen in de zone* |

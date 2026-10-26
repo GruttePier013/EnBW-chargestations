@@ -8,7 +8,7 @@ from homeassistant.components.device_tracker import SourceType, TrackerEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import PICTURE_AVAILABLE, PICTURE_PARTIAL, PICTURE_UNAVAILABLE, PICTURE_UNKNOWN
+from .const import PICTURE_AVAILABLE, PICTURE_AVAILABLE_2, PICTURE_UNAVAILABLE, PICTURE_UNKNOWN
 from .coordinator import EnbwConfigEntry
 from .parser import picture_kind, street_and_number, summarize, visual_state
 from .sensor import EnbwEntity
@@ -39,22 +39,14 @@ class StationLocation(EnbwEntity, TrackerEntity):
         return self.coordinator.location is not None
 
     @property
-    def location_name(self) -> str:
-        """State of the tracker: the same text as the 'Laadpunten' sensor, e.g. '2/4 beschikbaar'.
-
-        Without this a GPS tracker shows its zone name ('not_home') in the more-info dialog.
-        """
-        c = self.coordinator
-        return summarize(c.fresh_view)
-
-    @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Details shown in the attributes of the more-info dialog (not stored in the recorder)."""
         c = self.coordinator
         v = c.fresh_view
         if not v:
-            return {}
+            return {"status": summarize(None)}
         return {
+            "status": summarize(v),  # e.g. '2/4 beschikbaar'
             "available": v["free"],
             "total": v["total"],
             "visual": visual_state(v),
@@ -70,7 +62,7 @@ class StationLocation(EnbwEntity, TrackerEntity):
         """Green check = all charge points available, check + cross = some, red cross = none."""
         c = self.coordinator
         kind = picture_kind(c.view if c.last_update_success else None, c.is_stale)
-        return {"available": PICTURE_AVAILABLE, "partial": PICTURE_PARTIAL, "unknown": PICTURE_UNKNOWN}.get(
+        return {"available": PICTURE_AVAILABLE, "available_2": PICTURE_AVAILABLE_2, "unknown": PICTURE_UNKNOWN}.get(
             kind, PICTURE_UNAVAILABLE
         )
 

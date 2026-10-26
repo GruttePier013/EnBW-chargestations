@@ -90,9 +90,10 @@ def test_visual_icons_per_point():
 def test_picture_kind():
     assert (
         picture_kind(build_view({**DETAIL, "chargePoints": [DETAIL["chargePoints"][0], DETAIL["chargePoints"][2]]}))
-        == "available"
+        == "available_2"
     )
-    assert picture_kind(build_view(DETAIL)) == "partial"
+    assert picture_kind(build_view(DETAIL)) == "available_2"  # 2 of 4 free
+    assert picture_kind(build_view({**DETAIL, "chargePoints": DETAIL["chargePoints"][:2]})) == "available"  # 1 free
     assert picture_kind(build_view({**DETAIL, "chargePoints": [DETAIL["chargePoints"][1]]})) == "unavailable"
     assert picture_kind(build_view({**DETAIL, "openingTimes": {"nextOpeningTime": "x"}})) == "unavailable"
     assert picture_kind(None) == "unknown"
@@ -126,7 +127,7 @@ def test_picture_kind_unknown_when_stale():
     from custom_components.enbw_laadpalen.parser import picture_kind
 
     view = {"total": 2, "free": 2, "open": True}
-    assert picture_kind(view) == "available"
+    assert picture_kind(view) == "available_2"
     assert picture_kind(view, stale=True) == "unknown"
 
 

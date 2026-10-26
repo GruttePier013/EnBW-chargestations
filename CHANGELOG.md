@@ -1,7 +1,16 @@
 # Changelog
 
+## 0.5.5
+- Kaartmarkers: nieuwe set van 4 (`station_available_2` = 2 of meer vrij, `station_available` = 1 vrij, `station_unavailable`, `station_unknown`); de marker *gedeeltelijk* is verwijderd.
+
+## 0.5.4
+- Alleen versienummer: de wijzigingen van 0.5.3 (import, `location_name`, apparaten opruimen) zijn in deze versie definitief verwerkt, zodat HACS ze als update herkent.
+
 ## 0.5.3
-- Waarschuwing *Detected blocking call to import_module* opgelost: de integratie wordt nu in de executor geïmporteerd (`import_executor` in het manifest).
+- *Laadpaal op kaart*: de verouderde `location_name` is verwijderd (wordt vanaf HA 2027.7 niet meer ondersteund). De tekst `2/4 beschikbaar` staat nu in het attribuut `status`; de status van de tracker is de zone-status van HA (coördinaten blijven altijd gerapporteerd). Gebruik voor `2/4 beschikbaar` als status de sensor *Laadpunten*.
+- Opruimen van verwijderde laadpalen gebruikt `async_remove_device` in plaats van het verouderde `remove_config_entry_id`.
+- **Bugfix:** de integratie kon niet starten (`cannot import name 'async_extract_referenced_entity_ids'`) op nieuwere Home Assistant-versies; de doelkiezer gebruikt nu `homeassistant.helpers.target`. Minimale HA-versie: 2026.2.0.
+- Waarschuwing *Detected blocking call to import_module*: de integratie wordt nu in de executor geïmporteerd (`import_executor` in het manifest); de waarschuwing in het log kwam voort uit de mislukte import hierboven.
 
 ## 0.5.2
 - *Maximaal vermogen*, *Afstand tot persoon* en *Connectortypen* zijn diagnose-entiteiten; *Connectortypen* staat voor nieuwe installaties standaard uit.

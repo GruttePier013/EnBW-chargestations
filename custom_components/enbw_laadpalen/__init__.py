@@ -15,7 +15,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_interval
-from homeassistant.helpers.service import async_extract_referenced_entity_ids
+from homeassistant.helpers.target import TargetSelection, async_extract_referenced_entity_ids
 from homeassistant.helpers.typing import ConfigType
 
 from .api import EnbwApi
@@ -51,7 +51,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         coordinators: dict[str, StationCoordinator] = {}
         for entry in hass.config_entries.async_loaded_entries(DOMAIN):
             coordinators.update(entry.runtime_data.coordinators)
-        selected = async_extract_referenced_entity_ids(hass, call)
+        selected = async_extract_referenced_entity_ids(hass, TargetSelection(call.data))
         if selected.referenced or selected.indirectly_referenced or selected.referenced_devices:
             dev_reg = dr.async_get(hass)
             ent_reg = er.async_get(hass)
@@ -130,7 +130,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: EnbwConfigEntry) -> bool
     for device in dr.async_entries_for_config_entry(dev_reg, entry.entry_id):
         ids = {i[1] for i in device.identifiers if i[0] == DOMAIN}
         if ids and not ids & current:
-            dev_reg.async_update_device(device.id, remove_config_entry_id=entry.entry_id)
+            dev_reg.async_remove_device(device.id)  # a device belongs to a single config entry
 
     ent_reg = er.async_get(hass)
     # Renamed entity: keep the existing sensor (and its history) under the new unique id

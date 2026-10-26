@@ -191,12 +191,12 @@ def visual_state(view: dict[str, Any] | None) -> str:
 
 
 def picture_kind(view: dict[str, Any] | None, stale: bool = False) -> str:
-    """'available' (all free), 'partial' (some free), 'unavailable' (none free) or 'unknown' (no/old data)."""
+    """'available_2' (2+ free), 'available' (1 free), 'unavailable' (none free/closed) or 'unknown' (no/old data)."""
     if stale or not view:
         return "unknown"
     if not view or not view["total"] or view["open"] is False or view["free"] <= 0:
         return "unavailable"
-    return "available" if view["free"] >= view["total"] else "partial"
+    return "available_2" if view["free"] >= 2 else "available"
 
 
 # EnBW sends German day abbreviations; we show Dutch ones.

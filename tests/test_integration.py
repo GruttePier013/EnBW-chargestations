@@ -195,8 +195,8 @@ async def test_map_picture_follows_availability(hass: HomeAssistant, aioclient_m
     await setup(hass, entry())
     ent = eid(hass, "device_tracker", "location")
     base = "/enbw_laadpalen/static/"
-    assert hass.states.get(ent).attributes["entity_picture"] == base + "station_available.png"
-    for points, expected in (([free_a, busy], "station_partial.png"), ([busy], "station_unavailable.png")):
+    assert hass.states.get(ent).attributes["entity_picture"] == base + "station_available_2.png"
+    for points, expected in (([free_a, busy], "station_available.png"), ([busy], "station_unavailable.png")):
         aioclient_mock.clear_requests()
         aioclient_mock.get(DETAIL_URL, json={**DETAIL, "chargePoints": points})
         await hass.services.async_call("button", "press", {"entity_id": eid(hass, "button", "refresh")}, blocking=True)
@@ -212,7 +212,8 @@ def test_brand_and_static_files_exist():
         "brand/icon@2x.png",
         "brand/logo.png",
         "static/station_available.png",
-        "static/station_partial.png",
+        "static/station_available_2.png",
+        "static/station_unknown.png",
         "static/station_unavailable.png",
     ):
         assert (base / f).is_file(), f
@@ -769,13 +770,13 @@ async def test_tracker_state_shows_availability(hass: HomeAssistant, aioclient_m
     aioclient_mock.get(DETAIL_URL, json=DETAIL)
     await setup(hass, entry())
     state = hass.states.get(eid(hass, "device_tracker", "location"))
-    assert state.state == "2/4 beschikbaar"  # same text as the 'Laadpunten' sensor, not 'not_home'
+    assert state.attributes["status"] == "2/4 beschikbaar"  # location_name is deprecated; the text is an attribute
     assert state.attributes["visual"] == "🅿️/⛔/🅿️/⚫" and state.attributes["available"] == 2
     assert state.attributes["latitude"] == 52.37  # still a working map marker
     aioclient_mock.clear_requests()
     aioclient_mock.get(DETAIL_URL, status=500)
     await hass.services.async_call("button", "press", {"entity_id": eid(hass, "button", "refresh")}, blocking=True)
-    assert hass.states.get(eid(hass, "device_tracker", "location")).state == "Onbekend"
+    assert hass.states.get(eid(hass, "device_tracker", "location")).attributes["status"] == "Onbekend"
 
 
 async def test_backoff_does_not_clash_with_coordinator_base_class(hass: HomeAssistant, aioclient_mock):
