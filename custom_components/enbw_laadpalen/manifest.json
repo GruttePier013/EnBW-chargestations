@@ -1,0 +1,17 @@
+{
+  "domain": "enbw_laadpalen",
+  "name": "EnBW Laadpalen",
+  "after_dependencies": [
+    "http",
+    "person"
+  ],
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://github.com/JOUW_NAAM/ha-enbw-laadpalen",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/JOUW_NAAM/ha-enbw-laadpalen/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "0.5.0"
+}

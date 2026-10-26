@@ -1,0 +1,533 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "EnBW Laadpalen",
+        "description": "Voer je EnBW API-sleutel in (eenmalig; hij geldt voor alle laadpalen). Je haalt hem op via de ontwikkelaarstools van je browser op de [laadpaalkaart van EnBW](https://www.enbw.com/elektromobilitaet/unterwegs-laden#ladestations-finder): zoek in het netwerkverkeer naar een aanroep van `/emobility-public-api/api/v1/chargestations` en kopieer de waarde van de header `Ocp-Apim-Subscription-Key`.",
+        "data": {
+          "api_key": "API-sleutel"
+        }
+      },
+      "menu": {
+        "title": "Laadpalen toevoegen",
+        "menu_options": {
+          "search": "Laadpalen zoeken in een zone op de kaart",
+          "manual": "Stationsnummer invoeren"
+        }
+      },
+      "search": {
+        "title": "Laadpalen zoeken",
+        "description": "Typ een plaatsnaam en druk op Enter: de pin springt erheen. Verfijn de pin of de cirkel (50–5000 m) en kies *Verzenden* om te zoeken.",
+        "data": {
+          "location": "Zone op de kaart",
+          "address": "Plaatsnaam of adres"
+        }
+      },
+      "select_station": {
+        "title": "Selecteer laadpalen",
+        "description": "### ⚡ {count} Laadpalen gevonden.\n\n*Fun fact: samen {total} kW aan laadvermogen in deze zone.*\n\nSelecteer welke je wilt toevoegen. Elke laadpaal wordt een eigen apparaat.",
+        "data": {
+          "station_0": " ",
+          "station_1": " ",
+          "station_2": " ",
+          "station_3": " ",
+          "station_4": " ",
+          "station_5": " ",
+          "station_6": " ",
+          "station_7": " ",
+          "station_8": " ",
+          "station_9": " ",
+          "station_10": " ",
+          "station_11": " ",
+          "station_12": " ",
+          "station_13": " ",
+          "station_14": " ",
+          "station_15": " ",
+          "station_16": " ",
+          "station_17": " ",
+          "station_18": " ",
+          "station_19": " ",
+          "station_20": " ",
+          "station_21": " ",
+          "station_22": " ",
+          "station_23": " ",
+          "station_24": " "
+        },
+        "data_description": {
+          "station_0": "{status_0} ⚡ beschikbaar, {details_0}",
+          "station_1": "{status_1} ⚡ beschikbaar, {details_1}",
+          "station_2": "{status_2} ⚡ beschikbaar, {details_2}",
+          "station_3": "{status_3} ⚡ beschikbaar, {details_3}",
+          "station_4": "{status_4} ⚡ beschikbaar, {details_4}",
+          "station_5": "{status_5} ⚡ beschikbaar, {details_5}",
+          "station_6": "{status_6} ⚡ beschikbaar, {details_6}",
+          "station_7": "{status_7} ⚡ beschikbaar, {details_7}",
+          "station_8": "{status_8} ⚡ beschikbaar, {details_8}",
+          "station_9": "{status_9} ⚡ beschikbaar, {details_9}",
+          "station_10": "{status_10} ⚡ beschikbaar, {details_10}",
+          "station_11": "{status_11} ⚡ beschikbaar, {details_11}",
+          "station_12": "{status_12} ⚡ beschikbaar, {details_12}",
+          "station_13": "{status_13} ⚡ beschikbaar, {details_13}",
+          "station_14": "{status_14} ⚡ beschikbaar, {details_14}",
+          "station_15": "{status_15} ⚡ beschikbaar, {details_15}",
+          "station_16": "{status_16} ⚡ beschikbaar, {details_16}",
+          "station_17": "{status_17} ⚡ beschikbaar, {details_17}",
+          "station_18": "{status_18} ⚡ beschikbaar, {details_18}",
+          "station_19": "{status_19} ⚡ beschikbaar, {details_19}",
+          "station_20": "{status_20} ⚡ beschikbaar, {details_20}",
+          "station_21": "{status_21} ⚡ beschikbaar, {details_21}",
+          "station_22": "{status_22} ⚡ beschikbaar, {details_22}",
+          "station_23": "{status_23} ⚡ beschikbaar, {details_23}",
+          "station_24": "{status_24} ⚡ beschikbaar, {details_24}"
+        }
+      },
+      "station_details": {
+        "title": "Laadpaal instellen",
+        "description": "{progress}\n\nHuidige status: {status}\n\nVink de connectortypen aan die je wilt meetellen (niets aanvinken = alle typen) en stel eventueel een minimaal vermogen in. Het filter bepaalt welke laadpunten meetellen in *Laadpunten*, *Beschikbare laadpunten* en *Beschikbaar*.",
+        "data": {
+          "name": "Naam",
+          "plug_types": "Connectortypen meetellen (leeg = alle)",
+          "min_power": "Minimaal vermogen (kW, 0 = geen filter)"
+        }
+      },
+      "manual": {
+        "title": "Stationsnummer invoeren",
+        "description": "Voer één of meer EnBW-stationsnummers (`stationId`) in, gescheiden door komma's. Elk station wordt een eigen apparaat. Daarna kies je naam en filter.",
+        "data": {
+          "station_ids": "Stationsnummer(s)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Opnieuw verifiëren",
+        "description": "EnBW heeft de API-sleutel geweigerd. Voer een nieuwe sleutel in.",
+        "data": {
+          "api_key": "API-sleutel"
+        }
+      },
+      "defaults": {
+        "title": "Standaardwaarden",
+        "description": "Deze waarden gelden voor elke nieuwe laadpaal. Per laadpaal pas je ze later aan via de configuratie-entiteiten, en alle standaardwaarden wijzig je in *Configureren → Instellingen*. Verversen in de zone gebeurt per bezoek: bij binnenkomst één keer, daarna volgens de gekozen frequentie tot de maximale tijdsperiode voorbij is. Met *Alleen vernieuwen bij naderen* wordt tijdens een bezoek alleen ververst zolang iemand dichterbij komt.",
+        "data": {
+          "default_schedule": "Standaard vernieuwingsfrequentie",
+          "default_radius": "Standaard zone radius (m)",
+          "default_refresh_on_approach": "Standaard vernieuwen in zone",
+          "default_zone_interval": "Vernieuwingsfrequentie wanneer iemand in de zone is",
+          "default_zone_stop_after": "Maximale tijdsperiode wanneer iemand in de zone is",
+          "default_approach_only": "Alleen vernieuwen bij naderen"
+        }
+      },
+      "select_station_single": {
+        "title": "Selecteer laadpalen",
+        "description": "### ⚡ {count} Laadpaal gevonden.\n\n*Fun fact: samen {total} kW aan laadvermogen in deze zone.*\n\nSelecteer welke je wilt toevoegen. Elke laadpaal wordt een eigen apparaat.",
+        "data": {
+          "station_0": " ",
+          "station_1": " ",
+          "station_2": " ",
+          "station_3": " ",
+          "station_4": " ",
+          "station_5": " ",
+          "station_6": " ",
+          "station_7": " ",
+          "station_8": " ",
+          "station_9": " ",
+          "station_10": " ",
+          "station_11": " ",
+          "station_12": " ",
+          "station_13": " ",
+          "station_14": " ",
+          "station_15": " ",
+          "station_16": " ",
+          "station_17": " ",
+          "station_18": " ",
+          "station_19": " ",
+          "station_20": " ",
+          "station_21": " ",
+          "station_22": " ",
+          "station_23": " ",
+          "station_24": " "
+        },
+        "data_description": {
+          "station_0": "{status_0} ⚡ beschikbaar, {details_0}",
+          "station_1": "{status_1} ⚡ beschikbaar, {details_1}",
+          "station_2": "{status_2} ⚡ beschikbaar, {details_2}",
+          "station_3": "{status_3} ⚡ beschikbaar, {details_3}",
+          "station_4": "{status_4} ⚡ beschikbaar, {details_4}",
+          "station_5": "{status_5} ⚡ beschikbaar, {details_5}",
+          "station_6": "{status_6} ⚡ beschikbaar, {details_6}",
+          "station_7": "{status_7} ⚡ beschikbaar, {details_7}",
+          "station_8": "{status_8} ⚡ beschikbaar, {details_8}",
+          "station_9": "{status_9} ⚡ beschikbaar, {details_9}",
+          "station_10": "{status_10} ⚡ beschikbaar, {details_10}",
+          "station_11": "{status_11} ⚡ beschikbaar, {details_11}",
+          "station_12": "{status_12} ⚡ beschikbaar, {details_12}",
+          "station_13": "{status_13} ⚡ beschikbaar, {details_13}",
+          "station_14": "{status_14} ⚡ beschikbaar, {details_14}",
+          "station_15": "{status_15} ⚡ beschikbaar, {details_15}",
+          "station_16": "{status_16} ⚡ beschikbaar, {details_16}",
+          "station_17": "{status_17} ⚡ beschikbaar, {details_17}",
+          "station_18": "{status_18} ⚡ beschikbaar, {details_18}",
+          "station_19": "{status_19} ⚡ beschikbaar, {details_19}",
+          "station_20": "{status_20} ⚡ beschikbaar, {details_20}",
+          "station_21": "{status_21} ⚡ beschikbaar, {details_21}",
+          "station_22": "{status_22} ⚡ beschikbaar, {details_22}",
+          "station_23": "{status_23} ⚡ beschikbaar, {details_23}",
+          "station_24": "{status_24} ⚡ beschikbaar, {details_24}"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "EnBW weigert de API-sleutel.",
+      "cannot_connect": "Verbinding mislukt (EnBW of PDOK). Zie het logboek.",
+      "address_not_found": "Adres niet gevonden door PDOK.",
+      "no_selection": "Kies minstens één laadpaal.",
+      "station_not_found": "EnBW kent dit stationsnummer niet.",
+      "invalid_station_id": "Geen geldig stationsnummer gevonden."
+    },
+    "abort": {
+      "no_stations": "Geen (nieuwe) laadpalen gevonden binnen deze radius.",
+      "search_failed": "De laadpalen konden niet worden opgezocht (EnBW niet bereikbaar). Probeer het later opnieuw of voeg een station toe via 'Stationsnummer invoeren'.",
+      "invalid_auth": "EnBW weigert de API-sleutel.",
+      "already_configured": "Dit laadpaal is al toegevoegd.",
+      "single_instance_allowed": "Er is al een configuratie. Voeg laadpalen toe via Configureren.",
+      "reauth_successful": "API-sleutel bijgewerkt.",
+      "no_stations_configured": "Er zijn nog geen laadpalen geconfigureerd."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Laadpalen beheren",
+        "menu_options": {
+          "search": "Laadpalen zoeken in een zone op de kaart",
+          "manual": "Laadpaal toevoegen via stationsnummer",
+          "edit_station": "Laadpaal bewerken",
+          "remove_stations": "Laadpalen verwijderen",
+          "settings": "Instellingen"
+        }
+      },
+      "search": {
+        "title": "Laadpalen zoeken",
+        "description": "Typ een plaatsnaam en druk op Enter: de pin springt erheen. Verfijn de pin of de cirkel (50–5000 m) en kies *Verzenden* om te zoeken.",
+        "data": {
+          "location": "Zone op de kaart",
+          "address": "Plaatsnaam of adres"
+        }
+      },
+      "select_station": {
+        "title": "Selecteer laadpalen",
+        "description": "### ⚡ {count} Laadpalen gevonden.\n\n*Fun fact: samen {total} kW aan laadvermogen in deze zone.*\n\nSelecteer welke je wilt toevoegen. Elke laadpaal wordt een eigen apparaat.",
+        "data": {
+          "station_0": " ",
+          "station_1": " ",
+          "station_2": " ",
+          "station_3": " ",
+          "station_4": " ",
+          "station_5": " ",
+          "station_6": " ",
+          "station_7": " ",
+          "station_8": " ",
+          "station_9": " ",
+          "station_10": " ",
+          "station_11": " ",
+          "station_12": " ",
+          "station_13": " ",
+          "station_14": " ",
+          "station_15": " ",
+          "station_16": " ",
+          "station_17": " ",
+          "station_18": " ",
+          "station_19": " ",
+          "station_20": " ",
+          "station_21": " ",
+          "station_22": " ",
+          "station_23": " ",
+          "station_24": " "
+        },
+        "data_description": {
+          "station_0": "{status_0} ⚡ beschikbaar, {details_0}",
+          "station_1": "{status_1} ⚡ beschikbaar, {details_1}",
+          "station_2": "{status_2} ⚡ beschikbaar, {details_2}",
+          "station_3": "{status_3} ⚡ beschikbaar, {details_3}",
+          "station_4": "{status_4} ⚡ beschikbaar, {details_4}",
+          "station_5": "{status_5} ⚡ beschikbaar, {details_5}",
+          "station_6": "{status_6} ⚡ beschikbaar, {details_6}",
+          "station_7": "{status_7} ⚡ beschikbaar, {details_7}",
+          "station_8": "{status_8} ⚡ beschikbaar, {details_8}",
+          "station_9": "{status_9} ⚡ beschikbaar, {details_9}",
+          "station_10": "{status_10} ⚡ beschikbaar, {details_10}",
+          "station_11": "{status_11} ⚡ beschikbaar, {details_11}",
+          "station_12": "{status_12} ⚡ beschikbaar, {details_12}",
+          "station_13": "{status_13} ⚡ beschikbaar, {details_13}",
+          "station_14": "{status_14} ⚡ beschikbaar, {details_14}",
+          "station_15": "{status_15} ⚡ beschikbaar, {details_15}",
+          "station_16": "{status_16} ⚡ beschikbaar, {details_16}",
+          "station_17": "{status_17} ⚡ beschikbaar, {details_17}",
+          "station_18": "{status_18} ⚡ beschikbaar, {details_18}",
+          "station_19": "{status_19} ⚡ beschikbaar, {details_19}",
+          "station_20": "{status_20} ⚡ beschikbaar, {details_20}",
+          "station_21": "{status_21} ⚡ beschikbaar, {details_21}",
+          "station_22": "{status_22} ⚡ beschikbaar, {details_22}",
+          "station_23": "{status_23} ⚡ beschikbaar, {details_23}",
+          "station_24": "{status_24} ⚡ beschikbaar, {details_24}"
+        }
+      },
+      "station_details": {
+        "title": "Laadpaal instellen",
+        "description": "{progress}\n\nHuidige status: {status}\n\nVink de connectortypen aan die je wilt meetellen (niets aanvinken = alle typen) en stel eventueel een minimaal vermogen in. Het filter bepaalt welke laadpunten meetellen in *Laadpunten*, *Beschikbare laadpunten* en *Beschikbaar*.",
+        "data": {
+          "name": "Naam",
+          "plug_types": "Connectortypen meetellen (leeg = alle)",
+          "min_power": "Minimaal vermogen (kW, 0 = geen filter)"
+        }
+      },
+      "manual": {
+        "title": "Stationsnummer invoeren",
+        "description": "Voer één of meer EnBW-stationsnummers (`stationId`) in, gescheiden door komma's. Elk station wordt een eigen apparaat. Daarna kies je naam en filter.",
+        "data": {
+          "station_ids": "Stationsnummer(s)"
+        }
+      },
+      "edit_station": {
+        "title": "Welk laadpaal?",
+        "data": {
+          "station": "Laadpaal"
+        }
+      },
+      "edit_details": {
+        "title": "Laadpaal bewerken",
+        "data": {
+          "name": "Naam",
+          "plug_types": "Connectortypen meetellen (leeg = alle)",
+          "min_power": "Minimaal vermogen (kW, 0 = geen filter)"
+        }
+      },
+      "remove_stations": {
+        "title": "Laadpalen verwijderen",
+        "data": {
+          "remove": "Te verwijderen laadpalen"
+        }
+      },
+      "settings": {
+        "title": "Instellingen",
+        "description": "Kies welke personen meetellen voor de nabijheid (leeg = alle personen). Na vertrek uit de zone begint pas een nieuw verversbezoek als de zone zo lang leeg was; zo geeft GPS-ruis aan de rand geen extra verversingen.",
+        "data": {
+          "persons": "Gevolgde personen",
+          "zone_cooldown": "Opnieuw activeren na vertrek (min)"
+        },
+        "sections": {
+          "defaults": {
+            "name": "Standaardwaarden voor laadpalen",
+            "description": "Gelden voor nieuwe laadpalen. Vink *Toepassen op bestaande laadpalen* aan om ze ook bij alle bestaande laadpalen in te stellen (staat standaard uit; dan blijven hun eigen keuzes staan).",
+            "data": {
+              "default_schedule": "Standaard vernieuwingsfrequentie",
+              "default_radius": "Standaard zone radius (m)",
+              "default_refresh_on_approach": "Standaard vernieuwen in zone",
+              "default_zone_interval": "Vernieuwingsfrequentie wanneer iemand in de zone is",
+              "default_zone_stop_after": "Maximale tijdsperiode wanneer iemand in de zone is",
+              "apply_existing": "Toepassen op bestaande laadpalen",
+              "default_approach_only": "Alleen vernieuwen bij naderen"
+            }
+          },
+          "api": {
+            "name": "API-sleutel",
+            "description": "Wijzig alleen als EnBW de huidige sleutel weigert.",
+            "data": {
+              "api_key": "API-sleutel"
+            }
+          },
+          "protection": {
+            "name": "Foutbeveiliging",
+            "description": "Pauzeert automatisch vernieuwen na herhaalde fouten, zodat EnBW niet onnodig wordt belast. Handmatig vernieuwen (knop) werkt altijd en hervat een gepauzeerde laadpaal.",
+            "data": {
+              "max_errors": "Laadpaal pauzeren na aantal fouten achter elkaar",
+              "api_max_errors": "Alle automatische aanroepen pauzeren na aantal API-fouten achter elkaar",
+              "api_spacing": "Wachttijd tussen automatische API-aanroepen (seconden)"
+            }
+          }
+        }
+      },
+      "select_station_single": {
+        "title": "Selecteer laadpalen",
+        "description": "### ⚡ {count} Laadpaal gevonden.\n\n*Fun fact: samen {total} kW aan laadvermogen in deze zone.*\n\nSelecteer welke je wilt toevoegen. Elke laadpaal wordt een eigen apparaat.",
+        "data": {
+          "station_0": " ",
+          "station_1": " ",
+          "station_2": " ",
+          "station_3": " ",
+          "station_4": " ",
+          "station_5": " ",
+          "station_6": " ",
+          "station_7": " ",
+          "station_8": " ",
+          "station_9": " ",
+          "station_10": " ",
+          "station_11": " ",
+          "station_12": " ",
+          "station_13": " ",
+          "station_14": " ",
+          "station_15": " ",
+          "station_16": " ",
+          "station_17": " ",
+          "station_18": " ",
+          "station_19": " ",
+          "station_20": " ",
+          "station_21": " ",
+          "station_22": " ",
+          "station_23": " ",
+          "station_24": " "
+        },
+        "data_description": {
+          "station_0": "{status_0} ⚡ beschikbaar, {details_0}",
+          "station_1": "{status_1} ⚡ beschikbaar, {details_1}",
+          "station_2": "{status_2} ⚡ beschikbaar, {details_2}",
+          "station_3": "{status_3} ⚡ beschikbaar, {details_3}",
+          "station_4": "{status_4} ⚡ beschikbaar, {details_4}",
+          "station_5": "{status_5} ⚡ beschikbaar, {details_5}",
+          "station_6": "{status_6} ⚡ beschikbaar, {details_6}",
+          "station_7": "{status_7} ⚡ beschikbaar, {details_7}",
+          "station_8": "{status_8} ⚡ beschikbaar, {details_8}",
+          "station_9": "{status_9} ⚡ beschikbaar, {details_9}",
+          "station_10": "{status_10} ⚡ beschikbaar, {details_10}",
+          "station_11": "{status_11} ⚡ beschikbaar, {details_11}",
+          "station_12": "{status_12} ⚡ beschikbaar, {details_12}",
+          "station_13": "{status_13} ⚡ beschikbaar, {details_13}",
+          "station_14": "{status_14} ⚡ beschikbaar, {details_14}",
+          "station_15": "{status_15} ⚡ beschikbaar, {details_15}",
+          "station_16": "{status_16} ⚡ beschikbaar, {details_16}",
+          "station_17": "{status_17} ⚡ beschikbaar, {details_17}",
+          "station_18": "{status_18} ⚡ beschikbaar, {details_18}",
+          "station_19": "{status_19} ⚡ beschikbaar, {details_19}",
+          "station_20": "{status_20} ⚡ beschikbaar, {details_20}",
+          "station_21": "{status_21} ⚡ beschikbaar, {details_21}",
+          "station_22": "{status_22} ⚡ beschikbaar, {details_22}",
+          "station_23": "{status_23} ⚡ beschikbaar, {details_23}",
+          "station_24": "{status_24} ⚡ beschikbaar, {details_24}"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "EnBW weigert de API-sleutel.",
+      "cannot_connect": "Verbinding mislukt (EnBW of PDOK). Zie het logboek.",
+      "address_not_found": "Adres niet gevonden door PDOK.",
+      "no_selection": "Kies minstens één laadpaal.",
+      "station_not_found": "EnBW kent dit stationsnummer niet.",
+      "invalid_station_id": "Geen geldig stationsnummer gevonden."
+    },
+    "abort": {
+      "no_stations": "Geen (nieuwe) laadpalen gevonden binnen deze radius.",
+      "search_failed": "De laadpalen konden niet worden opgezocht (EnBW niet bereikbaar). Probeer het later opnieuw of voeg een station toe via 'Stationsnummer invoeren'.",
+      "invalid_auth": "EnBW weigert de API-sleutel.",
+      "already_configured": "Dit laadpaal is al toegevoegd.",
+      "single_instance_allowed": "Er is al een configuratie. Voeg laadpalen toe via Configureren.",
+      "reauth_successful": "API-sleutel bijgewerkt.",
+      "no_stations_configured": "Er zijn nog geen laadpalen geconfigureerd."
+    }
+  },
+  "entity": {
+    "select": {
+      "refresh_schedule": {
+        "state": {
+          "never": "Nooit",
+          "daily": "Dagelijks (06:00)",
+          "hourly": "Ieder uur",
+          "every_30_min_06_09": "Elke 30 min (06–09 uur)",
+          "every_30_min_16_19": "Elke 30 min (16–19 uur)",
+          "every_15_min": "Elke 15 min",
+          "every_5_min": "Elke 5 min",
+          "every_5_min_rush": "Elke 5 min (06–09 en 16–19 uur)"
+        }
+      },
+      "zone_refresh": {
+        "state": {
+          "on_entry": "Bij binnenkomst (1x)",
+          "every_2_min": "Elke 2 min",
+          "every_5_min": "Elke 5 min",
+          "every_10_min": "Elke 10 min",
+          "every_15_min": "Elke 15 min"
+        }
+      },
+      "zone_stop_after": {
+        "state": {
+          "10_min": "10 min",
+          "30_min": "30 min",
+          "60_min": "60 min",
+          "120_min": "120 min",
+          "unlimited": "Onbeperkt"
+        }
+      }
+    },
+    "sensor": {
+      "availability_visual": {
+        "name": "Beschikbaarheid visueel"
+      }
+    },
+    "binary_sensor": {
+      "charge_point": {
+        "name": "Laadpunt",
+        "state": {
+          "on": "Bezet",
+          "off": "Vrij"
+        }
+      }
+    },
+    "event": {
+      "charge_point_event": {
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "charge_point_available": "Laadpunt vrijgekomen"
+            }
+          }
+        }
+      }
+    }
+  },
+  "selector": {
+    "refresh_schedule": {
+      "options": {
+        "never": "Nooit",
+        "daily": "Dagelijks (06:00)",
+        "hourly": "Ieder uur",
+        "every_30_min_06_09": "Elke 30 min (06–09 uur)",
+        "every_30_min_16_19": "Elke 30 min (16–19 uur)",
+        "every_15_min": "Elke 15 min",
+        "every_5_min": "Elke 5 min",
+        "every_5_min_rush": "Elke 5 min (06–09 en 16–19 uur)"
+      }
+    },
+    "zone_refresh": {
+      "options": {
+        "on_entry": "Bij binnenkomst (1x)",
+        "every_2_min": "Elke 2 min",
+        "every_5_min": "Elke 5 min",
+        "every_10_min": "Elke 10 min",
+        "every_15_min": "Elke 15 min"
+      }
+    },
+    "zone_stop_after": {
+      "options": {
+        "10_min": "10 min",
+        "30_min": "30 min",
+        "60_min": "60 min",
+        "120_min": "120 min",
+        "unlimited": "Onbeperkt"
+      }
+    }
+  },
+  "issues": {
+    "station_paused": {
+      "title": "Laadpaal gepauzeerd",
+      "description": "Automatisch vernieuwen van **{name}** is gepauzeerd na {errors} fouten achter elkaar. Druk op de knop *Vernieuwen* van de laadpaal om het opnieuw te proberen; bij succes wordt het automatisch vernieuwen hervat."
+    },
+    "api_paused": {
+      "title": "EnBW-API tijdelijk gepauzeerd",
+      "description": "Na {errors} fouten achter elkaar (of een begrenzing door EnBW) worden automatische aanroepen tijdelijk gepauzeerd en daarna met toenemende wachttijd hervat. Handmatig vernieuwen kan altijd."
+    }
+  },
+  "services": {
+    "refresh_all": {
+      "name": "Alle laadpalen vernieuwen",
+      "description": "Haalt direct de actuele status van alle laadpalen op (hervat ook gepauzeerde laadpalen)."
+    }
+  }
+}
