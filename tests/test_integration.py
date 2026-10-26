@@ -849,3 +849,20 @@ async def test_refresh_all_service_and_stale_data(hass: HomeAssistant, aioclient
     assert not coordinator.is_stale and coordinator.fresh_view
     coordinator.data["fetched"] = dt_util.utcnow() - timedelta(days=2)
     assert coordinator.is_stale and coordinator.fresh_view is None
+
+
+async def test_removing_station_device_removes_the_station(hass: HomeAssistant, aioclient_mock):
+    from homeassistant.helpers import device_registry as dr
+
+    from custom_components.enbw_laadpalen import async_remove_config_entry_device
+
+    aioclient_mock.get(DETAIL_URL, json=DETAIL)
+    e = entry()
+    await setup(hass, e)
+    dev_reg = dr.async_get(hass)
+    station_dev = dev_reg.async_get_device(identifiers={(DOMAIN, "123")})
+    hub_dev = dev_reg.async_get_device(identifiers={(DOMAIN, e.entry_id)})
+    assert station_dev and hub_dev
+    assert await async_remove_config_entry_device(hass, e, hub_dev) is False
+    assert await async_remove_config_entry_device(hass, e, station_dev) is True
+    assert e.options["stations"] == []

@@ -31,7 +31,7 @@ from .const import (
 from .coordinator import EnbwConfigEntry, EnbwData, StationCoordinator, issue_id
 from .defaults import get_protection
 from .proximity import ProximityTracker
-from .stations import get_stations, station_key
+from .stations import CONF_STATIONS, get_stations, station_key
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 API_ISSUE_ID = "api_paused"
@@ -150,9 +150,16 @@ async def async_unload_entry(hass: HomeAssistant, entry: EnbwConfigEntry) -> boo
 
 
 async def async_remove_config_entry_device(hass: HomeAssistant, entry: EnbwConfigEntry, device: dr.DeviceEntry) -> bool:
-    """Only devices of stations that are no longer configured may be removed manually."""
-    current = {station_key(s) for s in get_stations(entry)}
-    return not any(i[0] == DOMAIN and i[1] in current for i in device.identifiers)
+    """Deleting a station's device removes that station from the configuration (same as Configure → remove)."""
+    ids = {i[1] for i in device.identifiers if i[0] == DOMAIN}
+    if entry.entry_id in ids:
+        return False  # the 'EnBW Laadpalen' device holds the refresh-all button
+    stations = get_stations(entry)
+    remaining = [s for s in stations if station_key(s) not in ids]
+    if len(remaining) != len(stations):
+        # the update listener reloads the entry, which also cleans up the station's entities and issues
+        hass.config_entries.async_update_entry(entry, options={**entry.options, CONF_STATIONS: remaining})
+    return True
 
 
 async def _async_reload_entry(hass: HomeAssistant, entry: EnbwConfigEntry) -> None:

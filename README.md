@@ -5,7 +5,7 @@
 Home Assistant-integratie voor de actuele status van EnBW-laadpalen: beschikbare laadpunten, vermogen, connectoren en openingstijden. Zoek laadpalen in een zone op de kaart; elke laadpaal wordt een eigen apparaat, met slim verversen op basis van de nabijheid van personen.
 
 ## Installeren
-1. HACS → menu → *Aangepaste repositories* → voeg deze repository toe (type *Integratie*).
+1. HACS → menu → *Aangepaste repositories* → voeg `https://github.com/GruttePier013/EnBW-chargestations` toe (type *Integratie*).
 2. Download **EnBW Laadpalen** en herstart Home Assistant.
 3. Instellingen → Apparaten & services → Integratie toevoegen → **EnBW Laadpalen**.
 

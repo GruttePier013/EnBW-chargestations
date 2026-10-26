@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.1
+- Een laadpaal verwijderen via *Apparaat verwijderen* werkt nu: de laadpaal wordt ook uit de configuratie gehaald (voorheen: "rejected by integration"). Het apparaat *EnBW Laadpalen* (knop *Alle laadpalen vernieuwen*) blijft beschermd.
+
 ## 0.5.0
 - Nieuwe afbeeldingen: integratielogo (ook in de README en `brand/` voor HACS/HA) en kaartmarkers *beschikbaar* en *niet beschikbaar*, plus een grijze marker met vraagteken voor onbekend/verouderd. De marker *gedeeltelijk* is ongewijzigd.
 - Gegevens ouder dan 1 dag: visuele sensor toont ⚫, de laadpaal-op-kaart toont de onbekend-marker en geen status.

@@ -5,13 +5,13 @@
     "http",
     "person"
   ],
-  "codeowners": [],
+  "codeowners": ["@GruttePier013"],
   "config_flow": true,
-  "documentation": "https://github.com/JOUW_NAAM/ha-enbw-laadpalen",
+  "documentation": "https://github.com/GruttePier013/EnBW-chargestations",
   "integration_type": "service",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/JOUW_NAAM/ha-enbw-laadpalen/issues",
+  "issue_tracker": "https://github.com/GruttePier013/EnBW-chargestations/issues",
   "requirements": [],
   "single_config_entry": true,
-  "version": "0.5.0"
+  "version": "0.5.1"
 }
