@@ -56,6 +56,18 @@ def clean_address(value: str) -> str:
     return text.strip(" ,")
 
 
+def list_label(address: str) -> str:
+    """'Hoofdlaan 1, Amsterdam, NL' -> 'Hoofdlaan 1, Amsterdam' (no country code in the result list)."""
+    return re.sub(r",\s*[A-Z]{2}$", "", address.strip())
+
+
+def format_distance(meters: float) -> str:
+    """'140m' below a kilometre, otherwise '1,2km'."""
+    if meters < 1000:
+        return f"{round(meters)}m"
+    return f"{meters / 1000:.1f}km".replace(".", ",")
+
+
 def station_is_open(detail: dict[str, Any]) -> bool | None:
     times = detail.get("openingTimes") or {}
     if times.get("twentyFourSeven"):

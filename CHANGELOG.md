@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.6.2
+- Resultatenlijst in de configflow: regel 1 = `Hoofdlaan 1, Amsterdam` (zonder landcode), regel 2 = `2/10 beschikbaar, ⚡17kW vermogen, 📍2925161, 140m van huis`. De afstand is nu vanaf je thuislocatie in HA; de windrichting is vervallen.
+
+## 0.6.1
+- Positie per laadpaal aanpassen: *Configureren → Laadpaal bewerken* toont een kaart met de pin op de huidige positie. Verschuif de pin en de marker op de HA-kaart (en de nabijheid van personen) gebruikt de nieuwe positie. Het vinkje *EnBW-positie herstellen* zet de positie van EnBW terug.
+
+## 0.6.0
+- **Let op:** *Laadpaal op kaart* is nu een **sensor** in plaats van een device tracker. De naam is straat en huisnummer en de status is `1/9 beschikbaar`; `latitude`, `longitude` en de marker staan als attributen. Het entiteit-id verandert (bijv. `sensor.voorbeeldlaan_14`); de oude device tracker wordt automatisch verwijderd. Pas dashboards en kaarten aan.
+- Nieuwe instelling *Marker met afbeelding op de HA-kaart* (uit = gewoon icoon).
+- Repo: `LICENSE` (MIT) en `tests/test_repository.py` (bewaakt HACS-/hassfest-eisen).
+
 ## 0.5.5
 - Kaartmarkers: nieuwe set van 4 (`station_available_2` = 2 of meer vrij, `station_available` = 1 vrij, `station_unavailable`, `station_unknown`); de marker *gedeeltelijk* is verwijderd.
 

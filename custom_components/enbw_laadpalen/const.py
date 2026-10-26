@@ -10,7 +10,6 @@ PLATFORMS = [
     Platform.SENSOR,
     Platform.BINARY_SENSOR,
     Platform.BUTTON,
-    Platform.DEVICE_TRACKER,
     Platform.EVENT,
     Platform.NUMBER,
     Platform.SELECT,
@@ -18,6 +17,10 @@ PLATFORMS = [
 ]
 
 CONF_API_KEY = "api_key"
+CONF_LAT_OVERRIDE = "lat_override"  # user-adjusted map position of a station (optional)
+CONF_LON_OVERRIDE = "lon_override"
+CONF_RESET_LOCATION = "reset_location"
+CONF_MAP_LOGO = "map_logo"  # show the availability pictures on the HA map (off = plain icon)
 CONF_ADDRESS = "address"
 CONF_LOCATION = "location"
 CONF_STATIONS = "stations"

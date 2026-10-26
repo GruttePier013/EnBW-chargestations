@@ -15,10 +15,10 @@ Handmatig: kopieer `custom_components/enbw_laadpalen` naar `config/custom_compon
 1. **API-sleutel** (eenmalig). EnBW biedt geen publieke registratie; gebruik de sleutel die de EnBW-laadstationkaart in de browser meestuurt (header `Ocp-Apim-Subscription-Key`). Bij een geweigerde sleutel start Home Assistant automatisch *opnieuw verifiëren*.
 2. **Standaardwaarden**: vernieuwingsfrequentie, zone radius, vernieuwen in zone en de bijbehorende frequentie en maximale duur.
 3. **Laadpalen zoeken**: typ een plaatsnaam of adres en druk op Enter, verplaats de pin en stel de zoekradius in (50–5000 m). Of kies *Stationsnummer invoeren*.
-4. **Resultaten**: vink de gewenste laadpalen aan. Per laadpaal zie je adres, beschikbare/totaal laadpunten, vermogen, locatiecode, afstand en windrichting.
+4. **Resultaten**: vink de gewenste laadpalen aan. Per laadpaal zie je het adres en daaronder bijvoorbeeld `2/10 beschikbaar, ⚡17kW vermogen, 📍2925161, 140m van huis` (vrije/totaal laadpunten, hoogste vermogen, locatiecode en afstand vanaf je thuislocatie).
 5. Per laadpaal: naam, optioneel **connectortypen** en **minimaal vermogen**.
 
-Via *Configureren* voeg je laadpalen toe, bewerk of verwijder je ze en pas je de instellingen aan (personen, afkoeltijd, standaardwaarden, foutbeveiliging, API-sleutel).
+Via *Configureren* voeg je laadpalen toe, bewerk of verwijder je ze (bij *Bewerken* kun je ook de pin van de laadpaal op de kaart verschuiven; *EnBW-positie herstellen* zet hem terug) en pas je de instellingen aan (personen, afkoeltijd, standaardwaarden, foutbeveiliging, API-sleutel).
 
 ## Entiteiten per laadpaal
 | Entiteit | Inhoud |
@@ -28,7 +28,7 @@ Via *Configureren* voeg je laadpalen toe, bewerk of verwijder je ze en pas je de
 | **Beschikbaarheid visueel** | één icoon per laadpunt, bijv. `🅿️/⛔` (🅿️ beschikbaar, ⛔ bezet of gesloten, ⚫ storing, onbekend of verouderd) |
 | **Beschikbaar** | binary_sensor: minstens één laadpunt beschikbaar |
 | **Laadpunt 1 - 17kW**, … | binary_sensor per laadpunt: *Bezet*, *Vrij* of *Onbekend* |
-| **Laadpaal op kaart** | device_tracker, genoemd naar straat en huisnummer, attribuut `status` = `2/4 beschikbaar`, met een marker: twee vinkjes = 2 of meer laadpunten vrij, één vinkje = 1 vrij, rood kruis = niets vrij of gesloten, grijs vraagteken = onbekend of verouderd |
+| **Laadpaal op kaart** | sensor, genoemd naar straat en huisnummer, status `2/4 beschikbaar`, met `latitude`/`longitude` en een marker (uit te zetten in *Configureren → Instellingen*): twee vinkjes = 2 of meer laadpunten vrij, één vinkje = 1 vrij, rood kruis = niets vrij of gesloten, grijs vraagteken = onbekend of verouderd |
 | **Personen nabij**, **Zone radius** | personen binnen de zone |
 | **Vernieuwen**, **Vernieuwingsfrequentie** | knop en keuzelijst (standaard *Nooit*) |
 | **Vernieuwen in zone**, **Alleen vernieuwen bij naderen**, **Vernieuwingsfrequentie in zone**, **Vernieuwen in zone stoppen na** | zie *Verversen in de zone* |

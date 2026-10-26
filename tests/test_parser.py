@@ -138,3 +138,12 @@ def test_street_and_number():
     assert street_and_number("Voorbeeldstad, Proefstraat 1") == "Proefstraat 1"
     assert street_and_number("Alleen een naam") == "Alleen een naam"
     assert street_and_number(None) is None
+
+
+def test_list_label_and_distance_format():
+    from custom_components.enbw_laadpalen.parser import format_distance, list_label
+
+    assert list_label("Hoofdlaan 1, Amsterdam, NL") == "Hoofdlaan 1, Amsterdam"
+    assert list_label("Hoofdlaan 1, Amsterdam") == "Hoofdlaan 1, Amsterdam"
+    assert format_distance(140.4) == "140m"
+    assert format_distance(1234) == "1,2km"

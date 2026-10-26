@@ -18,6 +18,8 @@ from homeassistant.util import dt as dt_util
 
 from .api import EnbwApi, EnbwApiError, EnbwAuthError, EnbwBlocked
 from .const import (
+    CONF_LAT_OVERRIDE,
+    CONF_LON_OVERRIDE,
     CONF_MAX_ERRORS,
     CONF_ZONE_COOLDOWN,
     DEFAULT_PROXIMITY_RADIUS,
@@ -332,8 +334,16 @@ class StationCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return self.data["view"] if self.data else None
 
     @property
+    def live_location(self) -> tuple[float, float] | None:
+        """Position from the last EnBW response (None until a response with coordinates arrived)."""
+        return self._live_location
+
+    @property
     def location(self) -> tuple[float, float] | None:
-        """Position of the station: from the configuration, otherwise from the live response."""
+        """Position of the station: the user's override, else the configuration, else the live response."""
+        lat, lon = self.station.get(CONF_LAT_OVERRIDE), self.station.get(CONF_LON_OVERRIDE)
+        if lat is not None and lon is not None:
+            return float(lat), float(lon)
         lat, lon = self.station.get("lat"), self.station.get("lon")
         if lat is not None and lon is not None:
             return float(lat), float(lon)

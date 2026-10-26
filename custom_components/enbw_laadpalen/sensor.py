@@ -17,9 +17,17 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, NAMES_NL
+from .const import (
+    CONF_MAP_LOGO,
+    DOMAIN,
+    NAMES_NL,
+    PICTURE_AVAILABLE,
+    PICTURE_AVAILABLE_2,
+    PICTURE_UNAVAILABLE,
+    PICTURE_UNKNOWN,
+)
 from .coordinator import EnbwConfigEntry, StationCoordinator
-from .parser import summarize, visual_icons, visual_state
+from .parser import picture_kind, street_and_number, summarize, visual_icons, visual_state
 
 
 async def async_setup_entry(
@@ -42,6 +50,8 @@ async def async_setup_entry(
         ]
         if c.station.get("distance_m") is not None:
             entities.append(StationDistance(c))
+        if c.location is not None:
+            entities.append(MapMarker(c))
     async_add_entities(entities)
 
 
@@ -367,3 +377,59 @@ class StationDistance(_Metadata):
     @property
     def native_value(self) -> int | None:
         return self.coordinator.station.get("distance_m")
+
+
+class MapMarker(EnbwEntity, SensorEntity):
+    """The station on the HA map: named after street + house number, state '1/9 beschikbaar'.
+
+    A sensor (not a device tracker) so the state can be the availability text; the map shows entities
+    with ``latitude``/``longitude`` attributes, with an availability picture as the marker.
+    """
+
+    _attr_has_entity_name = False  # the name (and entity id) is the street + house number
+    _attr_icon = "mdi:ev-station"
+
+    def __init__(self, coordinator: StationCoordinator) -> None:
+        super().__init__(coordinator, "location")
+
+    @property
+    def name(self) -> str:  # type: ignore[override]
+        c = self.coordinator
+        address = (c.view or {}).get("address") or c.station["name"]
+        return street_and_number(address) or c.station["name"]
+
+    @property
+    def available(self) -> bool:
+        return self.coordinator.location is not None
+
+    @property
+    def native_value(self) -> str:
+        return summarize(self.coordinator.fresh_view)
+
+    @property
+    def entity_picture(self) -> str | None:
+        c = self.coordinator
+        if not c.entry.options.get(CONF_MAP_LOGO, True):
+            return None  # plain icon
+        kind = picture_kind(c.view if c.last_update_success else None, c.is_stale)
+        return {"available": PICTURE_AVAILABLE, "available_2": PICTURE_AVAILABLE_2, "unknown": PICTURE_UNKNOWN}.get(
+            kind, PICTURE_UNAVAILABLE
+        )
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        c = self.coordinator
+        loc = c.location
+        attrs: dict[str, Any] = {"latitude": loc[0], "longitude": loc[1]} if loc else {}
+        if v := c.fresh_view:
+            attrs |= {
+                "available": v["free"],
+                "total": v["total"],
+                "visual": visual_state(v),
+                "max_power_kw": v["max_power_kw"],
+                "connector_types": v["plug_types"],
+                "address": v["address"],
+                "opening_hours": v["opening_hours"],
+                "open": v["open"],
+            }
+        return attrs

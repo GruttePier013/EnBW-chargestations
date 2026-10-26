@@ -21,7 +21,6 @@ from .api import (
     EnbwAuthError,
     EnbwNotFound,
     bearing_deg,
-    direction_label,
     distance_m,
 )
 from .const import (
@@ -36,11 +35,15 @@ from .const import (
     CONF_DEFAULT_SCHEDULE,
     CONF_DEFAULT_ZONE_INTERVAL,
     CONF_DEFAULT_ZONE_STOP_AFTER,
+    CONF_LAT_OVERRIDE,
     CONF_LOCATION,
+    CONF_LON_OVERRIDE,
+    CONF_MAP_LOGO,
     CONF_MAX_ERRORS,
     CONF_MIN_POWER,
     CONF_PERSONS,
     CONF_PLUGS,
+    CONF_RESET_LOCATION,
     CONF_SECTION_API,
     CONF_SECTION_DEFAULTS,
     CONF_SECTION_PROTECTION,
@@ -57,7 +60,7 @@ from .const import (
     PREVIEW_MAX_STATIONS,
 )
 from .defaults import get_defaults, get_protection
-from .parser import build_view, clean_address, parse_ids, summarize
+from .parser import build_view, clean_address, format_distance, list_label, parse_ids, summarize
 from .schedules import SCHEDULES, ZONE_INTERVALS, ZONE_STOP_AFTER
 from .stations import get_stations, station_key
 
@@ -325,8 +328,8 @@ class StationFlowMixin:
                         pending["default_name"] = f"{pending['default_name']} ({n})"
                 return await self.async_step_station_details()
         # One field per station: checkbox + address (row 1) with status and details as helper text (row 2):
-        #   ☐ Voorbeeldlaan 1, Voorbeeldstad, NL
-        #     2/2 ⚡ beschikbaar, 17kW 🗼, 2925161 📍, 140m ↘ ZO
+        #   ☐ Hoofdlaan 1, Amsterdam
+        #     2/10 beschikbaar, ⚡17kW vermogen, 📍2925161, 140m van huis
         fields: dict[Any, Any] = {}
         placeholders: dict[str, str] = {}
         total_kw = 0.0
@@ -343,17 +346,16 @@ class StationFlowMixin:
             else:
                 status = "⚠️ ?/?"
                 total_kw += float(c.get("max_power") or 0)
-            details = []
-            if v and v["max_power_kw"]:
-                details.append(f"{v['max_power_kw']:g}kW 🗼")
-            details.append(f"{c['id']} 📍")
-            direction = direction_label(c["bearing"])
-            details.append(f"{c['distance_m']}m" + (f" {direction}" if direction else ""))
+            power = f"{v['max_power_kw']:g}kW" if v and v["max_power_kw"] else "?"
+            hass = self.hass  # type: ignore[attr-defined]
+            home = distance_m(hass.config.latitude, hass.config.longitude, c["lat"], c["lon"])
             fields[vol.Optional(f"station_{i}", default=[])] = _select(
-                [{"label": c["name"], "value": str(i)}], multiple=True
+                [{"label": list_label(c["name"]), "value": str(i)}], multiple=True
             )
             placeholders[f"status_{i}"] = status
-            placeholders[f"details_{i}"] = ", ".join(details)
+            placeholders[f"power_{i}"] = power
+            placeholders[f"code_{i}"] = str(c["id"])
+            placeholders[f"dist_{i}"] = format_distance(home)
         n = len(self._candidates)
         placeholders |= {"count": str(n), "total": f"{round(total_kw, 1):g}"}
         return self.async_show_form(  # type: ignore[attr-defined]
@@ -570,6 +572,20 @@ class EnbwOptionsFlow(StationFlowMixin, config_entries.OptionsFlow):
             step_id="edit_station", data_schema=vol.Schema({vol.Required(CONF_STATION): _select(options)})
         )
 
+    def _original_location(self, station: dict[str, Any]) -> tuple[float, float] | None:
+        """The position EnBW reports (configuration or live response), without the user's override."""
+        lat, lon = station.get("lat"), station.get("lon")
+        if lat is not None and lon is not None:
+            return float(lat), float(lon)
+        data = getattr(self.config_entry, "runtime_data", None)
+        coordinator = data.coordinators.get(station_key(station)) if data else None
+        return coordinator.live_location if coordinator else None
+
+    def _effective_location(self, station: dict[str, Any]) -> tuple[float, float] | None:
+        if station.get(CONF_LAT_OVERRIDE) is not None and station.get(CONF_LON_OVERRIDE) is not None:
+            return float(station[CONF_LAT_OVERRIDE]), float(station[CONF_LON_OVERRIDE])
+        return self._original_location(station)
+
     async def async_step_edit_details(self, user_input: dict[str, Any] | None = None):
         stations = self._stations()
         current = next(s for s in stations if station_key(s) == self._edit_key)
@@ -580,6 +596,15 @@ class EnbwOptionsFlow(StationFlowMixin, config_entries.OptionsFlow):
                 "plugs": list(user_input.get(CONF_PLUGS) or []),
                 "min_power": float(user_input.get(CONF_MIN_POWER) or 0),
             }
+            # Map position override: moving the pin sets it, 'reset' returns to the EnBW position
+            updated.pop(CONF_LAT_OVERRIDE, None)
+            updated.pop(CONF_LON_OVERRIDE, None)
+            chosen = user_input.get(CONF_LOCATION) or {}
+            original = self._original_location(current)
+            if not user_input.get(CONF_RESET_LOCATION) and chosen.get("latitude") is not None:
+                lat, lon = float(chosen["latitude"]), float(chosen["longitude"])
+                if original is None or distance_m(original[0], original[1], lat, lon) >= 1:
+                    updated[CONF_LAT_OVERRIDE], updated[CONF_LON_OVERRIDE] = round(lat, 6), round(lon, 6)
             return self._save(**{CONF_STATIONS: [updated if station_key(s) == self._edit_key else s for s in stations]})
         try:
             available = build_view(await self._api().async_detail(current["id"]))["plug_types"]
@@ -590,6 +615,17 @@ class EnbwOptionsFlow(StationFlowMixin, config_entries.OptionsFlow):
         if choices:
             fields[vol.Optional(CONF_PLUGS, default=current["plugs"])] = _select(choices, multiple=True)
         fields[vol.Optional(CONF_MIN_POWER, default=current["min_power"])] = _power_selector()
+        shown = self._effective_location(current)
+        loc_key = (
+            vol.Optional(CONF_LOCATION, default={"latitude": shown[0], "longitude": shown[1]})
+            if shown
+            else (vol.Optional(CONF_LOCATION))
+        )
+        fields[loc_key] = selector.LocationSelector(
+            selector.LocationSelectorConfig(radius=False, icon="mdi:ev-station")
+        )
+        if CONF_LAT_OVERRIDE in current:
+            fields[vol.Optional(CONF_RESET_LOCATION, default=False)] = selector.BooleanSelector()
         return self.async_show_form(step_id="edit_details", data_schema=vol.Schema(fields))
 
     # ------------------------------------------------------------ remove
@@ -618,6 +654,7 @@ class EnbwOptionsFlow(StationFlowMixin, config_entries.OptionsFlow):
                         min=1, max=240, step=1, unit_of_measurement="min", mode=selector.NumberSelectorMode.BOX
                     )
                 ),
+                vol.Required(CONF_MAP_LOGO, default=values.get(CONF_MAP_LOGO, True)): selector.BooleanSelector(),
                 vol.Required(CONF_SECTION_DEFAULTS): section(
                     vol.Schema(
                         {
@@ -686,6 +723,7 @@ class EnbwOptionsFlow(StationFlowMixin, config_entries.OptionsFlow):
                 **protection,
                 CONF_PERSONS: list(user_input.get(CONF_PERSONS, [])),
                 CONF_ZONE_COOLDOWN: int(user_input.get(CONF_ZONE_COOLDOWN, DEFAULT_ZONE_COOLDOWN)),
+                CONF_MAP_LOGO: bool(user_input.get(CONF_MAP_LOGO, True)),
             }
             if api_key != current_key:
                 try:

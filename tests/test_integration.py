@@ -67,7 +67,7 @@ async def test_entities(hass: HomeAssistant, aioclient_mock):
         ent_id = reg.async_get_entity_id("binary_sensor", DOMAIN, f"123_point_{evse}")
         assert hass.states.get(ent_id).state == state
         assert hass.states.get(ent_id).attributes["friendly_name"].endswith(name)
-    assert hass.states.get(eid(hass, "device_tracker", "location")).attributes["latitude"] == 52.37
+    assert hass.states.get(eid(hass, "sensor", "location")).attributes["latitude"] == 52.37
     assert hass.states.get(eid(hass, "select", "refresh_schedule")).state == "never"
     assert aioclient_mock.call_count == 1  # only the first refresh
 
@@ -172,9 +172,12 @@ async def test_search_flow_and_options_remove(hass: HomeAssistant, aioclient_moc
     assert r["step_id"] == "select_station_single"
     ph = r["description_placeholders"]
     assert (ph["count"], ph["total"]) == ("1", "344")  # 4 laadpunten: 150+150+22+22 kW
-    assert ph["status_0"] == "2/4" and ph["details_0"] == "150kW 🗼, 123 📍, 13m ↗ NO"
+    assert (ph["status_0"], ph["power_0"], ph["code_0"]) == ("2/4", "150kW", "123")
+    assert ph["dist_0"].endswith("m") or ph["dist_0"].endswith("km")  # distance from home
     label = r["data_schema"].schema["station_0"].config["options"][0]["label"]
-    assert label == "Voorbeeldstad, Proefstraat 1"  # row 1 = address; status and details are the helper text below it
+    assert (
+        label == "Voorbeeldstad, Proefstraat 1"
+    )  # no country code  # row 1 = address; status and details are the helper text below it
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"station_0": ["0"]})
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"name": "Paal", "min_power": 0})
     assert r["type"] is FlowResultType.CREATE_ENTRY
@@ -193,7 +196,7 @@ async def test_map_picture_follows_availability(hass: HomeAssistant, aioclient_m
     free_a, busy, free_c = DETAIL["chargePoints"][0], DETAIL["chargePoints"][1], DETAIL["chargePoints"][2]
     aioclient_mock.get(DETAIL_URL, json={**DETAIL, "chargePoints": [free_a, free_c]})
     await setup(hass, entry())
-    ent = eid(hass, "device_tracker", "location")
+    ent = eid(hass, "sensor", "location")
     base = "/enbw_laadpalen/static/"
     assert hass.states.get(ent).attributes["entity_picture"] == base + "station_available_2.png"
     for points, expected in (([free_a, busy], "station_available.png"), ([busy], "station_unavailable.png")):
@@ -455,7 +458,7 @@ async def test_select_plural_step_and_total_power(hass: HomeAssistant, aioclient
     assert r["step_id"] == "select_station"  # meervoud: '2 Laadpalen gevonden.'
     ph = r["description_placeholders"]
     assert (ph["count"], ph["total"]) == ("2", "494")  # 344 + 150 kW
-    assert set(r["data_schema"].schema) == {"station_0", "station_1"} and "details_1" in ph
+    assert set(r["data_schema"].schema) == {"station_0", "station_1"} and "dist_1" in ph and "power_1" in ph
 
 
 async def test_zone_place_name_moves_pin_then_search(hass: HomeAssistant, aioclient_mock):
@@ -766,17 +769,17 @@ async def test_diagnostics_redacts_key_and_includes_raw_response(hass: HomeAssis
     assert (await async_get_device_diagnostics(hass, e, device))["raw_response"]["stationId"] == 123
 
 
-async def test_tracker_state_shows_availability(hass: HomeAssistant, aioclient_mock):
+async def test_map_marker_state_shows_availability(hass: HomeAssistant, aioclient_mock):
     aioclient_mock.get(DETAIL_URL, json=DETAIL)
     await setup(hass, entry())
-    state = hass.states.get(eid(hass, "device_tracker", "location"))
-    assert state.attributes["status"] == "2/4 beschikbaar"  # location_name is deprecated; the text is an attribute
+    state = hass.states.get(eid(hass, "sensor", "location"))
+    assert state.state == "2/4 beschikbaar"  # the marker is a sensor, so the state is the availability text
     assert state.attributes["visual"] == "🅿️/⛔/🅿️/⚫" and state.attributes["available"] == 2
     assert state.attributes["latitude"] == 52.37  # still a working map marker
     aioclient_mock.clear_requests()
     aioclient_mock.get(DETAIL_URL, status=500)
     await hass.services.async_call("button", "press", {"entity_id": eid(hass, "button", "refresh")}, blocking=True)
-    assert hass.states.get(eid(hass, "device_tracker", "location")).attributes["status"] == "Onbekend"
+    assert hass.states.get(eid(hass, "sensor", "location")).state == "Onbekend"
 
 
 async def test_backoff_does_not_clash_with_coordinator_base_class(hass: HomeAssistant, aioclient_mock):
@@ -881,9 +884,55 @@ async def test_tracker_named_after_street_and_diagnostic_categories(hass: HomeAs
     e = entry()
     await setup(hass, e)
     reg = er.async_get(hass)
-    tracker = reg.async_get(eid(hass, "device_tracker", "location"))
-    assert tracker.entity_id == "device_tracker.voorbeeldlaan_14"
+    tracker = reg.async_get(eid(hass, "sensor", "location"))
+    assert tracker.entity_id == "sensor.voorbeeldlaan_14"
     assert hass.states.get(tracker.entity_id).name == "Voorbeeldlaan 14"
     for key in ("max_power", "distance_to_person", "plug_types"):
         assert reg.async_get(eid(hass, "sensor", key)).entity_category is EntityCategory.DIAGNOSTIC
     assert reg.async_get(eid(hass, "sensor", "plug_types")).disabled_by is not None
+
+
+async def test_map_marker_logo_option_and_old_tracker_cleanup(hass: HomeAssistant, aioclient_mock):
+    from homeassistant.helpers import entity_registry as er
+
+    aioclient_mock.get(DETAIL_URL, json=DETAIL)
+    e = entry()
+    reg = er.async_get(hass)
+    e.add_to_hass(hass)
+    old = reg.async_get_or_create("device_tracker", DOMAIN, "123_location", config_entry=e)
+    await hass.config_entries.async_setup(e.entry_id)
+    await hass.async_block_till_done()
+    assert reg.async_get(old.entity_id) is None  # the old device tracker is removed
+    marker = eid(hass, "sensor", "location")
+    assert hass.states.get(marker).attributes["entity_picture"].endswith("station_available_2.png")
+    hass.config_entries.async_update_entry(e, options={**e.options, "map_logo": False})
+    await hass.async_block_till_done()
+    assert "entity_picture" not in hass.states.get(eid(hass, "sensor", "location")).attributes
+
+
+async def test_station_map_position_can_be_overridden_and_reset(hass: HomeAssistant, aioclient_mock):
+    aioclient_mock.get(DETAIL_URL, json=DETAIL)
+    e = entry()
+    await setup(hass, e)
+    assert hass.states.get(eid(hass, "sensor", "location")).attributes["latitude"] == 52.37
+
+    async def edit(extra):
+        r = await hass.config_entries.options.async_init(e.entry_id)
+        r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "edit_station"})
+        r = await hass.config_entries.options.async_configure(r["flow_id"], {"station": "123"})
+        assert r["step_id"] == "edit_details"
+        r = await hass.config_entries.options.async_configure(r["flow_id"], {"name": "Paal", "min_power": 0, **extra})
+        assert r["type"] == "create_entry"
+        await hass.async_block_till_done()
+
+    # unchanged pin: no override stored
+    await edit({"location": {"latitude": 52.37, "longitude": 4.90}})
+    assert "lat_override" not in e.options["stations"][0]
+    # moved pin: override stored and used by the map marker
+    await edit({"location": {"latitude": 52.3705, "longitude": 4.9005}})
+    assert e.options["stations"][0]["lat_override"] == 52.3705
+    assert hass.states.get(eid(hass, "sensor", "location")).attributes["latitude"] == 52.3705
+    # reset: back to the EnBW position
+    await edit({"reset_location": True})
+    assert "lat_override" not in e.options["stations"][0]
+    assert hass.states.get(eid(hass, "sensor", "location")).attributes["latitude"] == 52.37

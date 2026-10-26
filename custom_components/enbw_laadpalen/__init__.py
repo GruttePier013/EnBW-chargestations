@@ -40,7 +40,7 @@ API_ISSUE_ID = "api_paused"
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    # Pictures of the station on the map (device_tracker entity_picture)
+    # Pictures of the station on the map (entity_picture of the map marker sensor)
     if http := getattr(hass, "http", None):
         await http.async_register_static_paths(
             [StaticPathConfig(STATIC_URL, str(Path(__file__).parent / "static"), False)]
@@ -137,6 +137,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: EnbwConfigEntry) -> bool
     for key in coordinators:
         if old := ent_reg.async_get_entity_id("sensor", DOMAIN, f"{key}_nearest_person_distance"):
             ent_reg.async_update_entity(old, new_unique_id=f"{key}_distance_to_person")
+
+    # The map marker used to be a device tracker; it is a sensor now
+    for key in coordinators:
+        if old := ent_reg.async_get_entity_id("device_tracker", DOMAIN, f"{key}_location"):
+            ent_reg.async_remove(old)
 
     # Removed entity (binary_sensor 'Persoon nabij'): clean up old registry items
     for key in coordinators:
