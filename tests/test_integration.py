@@ -48,7 +48,7 @@ async def test_entities(hass: HomeAssistant, aioclient_mock):
     st = hass.states.get(eid(hass, "sensor", "points"))
     assert st.state == "2/4 beschikbaar" and len(st.attributes["charge_points"]) == 4
     assert hass.states.get(eid(hass, "sensor", "free_points")).state == "2"
-    assert hass.states.get(eid(hass, "sensor", "plug_types")).state == "CCS, Type 2"
+    assert hass.states.get(eid(hass, "sensor", "plug_types")) is None  # disabled by default (diagnostic)
     assert hass.states.get(eid(hass, "binary_sensor", "available")).state == "on"
     visual = hass.states.get(eid(hass, "sensor", "availability_visual"))
     assert visual.state == "🅿️/⛔/🅿️/⚫" and visual.attributes["per_charge_point"][1] == {
@@ -707,7 +707,7 @@ async def test_freed_charge_point_fires_event_only_with_people_in_zone(hass: Hom
 async def test_nearest_person_distance_sensor(hass: HomeAssistant, aioclient_mock):
     aioclient_mock.get(DETAIL_URL, json=DETAIL)
     await setup(hass, entry())
-    sensor = eid(hass, "sensor", "nearest_person_distance")
+    sensor = eid(hass, "sensor", "distance_to_person")
     assert hass.states.get(sensor).state == "unknown"
     hass.states.async_set("person.alice", "not_home", {"latitude": 53.0, "longitude": 6.0, "friendly_name": "Alice"})
     await hass.async_block_till_done()
@@ -832,18 +832,24 @@ async def test_startup_refresh_is_limited_to_five_concurrent_calls(hass: HomeAss
     assert 1 < peak <= 5
 
 
-async def test_refresh_all_service_and_stale_data(hass: HomeAssistant, aioclient_mock):
+async def test_refresh_service_and_stale_data(hass: HomeAssistant, aioclient_mock):
     from datetime import timedelta
 
+    from homeassistant.helpers import device_registry as dr
     from homeassistant.util import dt as dt_util
 
     aioclient_mock.get(DETAIL_URL, json=DETAIL)
     e = entry()
     await setup(hass, e)
-    assert hass.services.has_service(DOMAIN, "refresh_all")
+    assert hass.services.has_service(DOMAIN, "refresh")
     before = len(aioclient_mock.mock_calls)
-    await hass.services.async_call(DOMAIN, "refresh_all", {}, blocking=True)
-    assert len(aioclient_mock.mock_calls) > before
+    await hass.services.async_call(DOMAIN, "refresh", {}, blocking=True)  # no target: all stations
+    assert len(aioclient_mock.mock_calls) == before + 1
+    device = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, "123")})
+    await hass.services.async_call(DOMAIN, "refresh", {"device_id": device.id}, blocking=True)
+    assert len(aioclient_mock.mock_calls) == before + 2
+    await hass.services.async_call(DOMAIN, "refresh", {"device_id": "unknown"}, blocking=True)
+    assert len(aioclient_mock.mock_calls) == before + 2  # other target: nothing refreshed
 
     coordinator = e.runtime_data.coordinators["123"]
     assert not coordinator.is_stale and coordinator.fresh_view
@@ -861,8 +867,22 @@ async def test_removing_station_device_removes_the_station(hass: HomeAssistant, 
     await setup(hass, e)
     dev_reg = dr.async_get(hass)
     station_dev = dev_reg.async_get_device(identifiers={(DOMAIN, "123")})
-    hub_dev = dev_reg.async_get_device(identifiers={(DOMAIN, e.entry_id)})
-    assert station_dev and hub_dev
-    assert await async_remove_config_entry_device(hass, e, hub_dev) is False
+    assert station_dev
     assert await async_remove_config_entry_device(hass, e, station_dev) is True
     assert e.options["stations"] == []
+
+
+async def test_tracker_named_after_street_and_diagnostic_categories(hass: HomeAssistant, aioclient_mock):
+    from homeassistant.const import EntityCategory
+    from homeassistant.helpers import entity_registry as er
+
+    aioclient_mock.get(DETAIL_URL, json={**DETAIL, "shortAddress": "Voorbeeldlaan 14, 1234AB Voorbeeldstad, NL"})
+    e = entry()
+    await setup(hass, e)
+    reg = er.async_get(hass)
+    tracker = reg.async_get(eid(hass, "device_tracker", "location"))
+    assert tracker.entity_id == "device_tracker.voorbeeldlaan_14"
+    assert hass.states.get(tracker.entity_id).name == "Voorbeeldlaan 14"
+    for key in ("max_power", "distance_to_person", "plug_types"):
+        assert reg.async_get(eid(hass, "sensor", key)).entity_category is EntityCategory.DIAGNOSTIC
+    assert reg.async_get(eid(hass, "sensor", "plug_types")).disabled_by is not None

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.3
+- Waarschuwing *Detected blocking call to import_module* opgelost: de integratie wordt nu in de executor geïmporteerd (`import_executor` in het manifest).
+
+## 0.5.2
+- *Maximaal vermogen*, *Afstand tot persoon* en *Connectortypen* zijn diagnose-entiteiten; *Connectortypen* staat voor nieuwe installaties standaard uit.
+- *Afstand tot dichtstbijzijnde persoon* heet nu *Afstand tot persoon* (sleutel `distance_to_person`); de bestaande sensor wordt automatisch meeverhuisd.
+- *Laadpaal op kaart* krijgt de naam van straat en huisnummer (bijv. `device_tracker.voorbeeldlaan_14` voor nieuwe laadpalen; bestaande entiteit-id's blijven gelijk).
+- Actie hernoemd: `enbw_laadpalen.refresh_all` → `enbw_laadpalen.refresh`. Zonder doel worden alle laadpalen ververst; met apparaten, entiteiten of gebieden als doel alleen die laadpalen (doelkiezer van de HA-UI).
+- De knop *Alle laadpalen vernieuwen* heeft geen eigen apparaat meer; het apparaat *EnBW Laadpalen* wordt bij de volgende start opgeruimd.
+
 ## 0.5.1
 - Een laadpaal verwijderen via *Apparaat verwijderen* werkt nu: de laadpaal wordt ook uit de configuratie gehaald (voorheen: "rejected by integration"). Het apparaat *EnBW Laadpalen* (knop *Alle laadpalen vernieuwen*) blijft beschermd.
 

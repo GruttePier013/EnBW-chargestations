@@ -10,7 +10,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import PICTURE_AVAILABLE, PICTURE_PARTIAL, PICTURE_UNAVAILABLE, PICTURE_UNKNOWN
 from .coordinator import EnbwConfigEntry
-from .parser import picture_kind, summarize, visual_state
+from .parser import picture_kind, street_and_number, summarize, visual_state
 from .sensor import EnbwEntity
 
 
@@ -23,9 +23,16 @@ async def async_setup_entry(
 class StationLocation(EnbwEntity, TrackerEntity):
     _attr_source_type = SourceType.GPS
     _attr_icon = "mdi:ev-station"
+    _attr_has_entity_name = False  # the name (and entity id) is the street + house number
 
     def __init__(self, coordinator) -> None:
         super().__init__(coordinator, "location")
+
+    @property
+    def name(self) -> str:  # type: ignore[override]
+        c = self.coordinator
+        address = (c.view or {}).get("address") or c.station["name"]
+        return street_and_number(address) or c.station["name"]
 
     @property
     def available(self) -> bool:

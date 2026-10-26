@@ -6,10 +6,8 @@ import asyncio
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, NAME
 from .coordinator import EnbwConfigEntry
 from .sensor import EnbwEntity
 
@@ -37,7 +35,7 @@ class RefreshButton(EnbwEntity, ButtonEntity):
 
 
 class RefreshAllButton(ButtonEntity):
-    """Refreshes every station of the integration (same as the ``enbw_laadpalen.refresh_all`` action)."""
+    """Refreshes every station of the integration (same as the ``enbw_laadpalen.refresh`` action without a target)."""
 
     _attr_has_entity_name = True
     _attr_name = "Alle laadpalen vernieuwen"
@@ -46,7 +44,6 @@ class RefreshAllButton(ButtonEntity):
     def __init__(self, entry: EnbwConfigEntry) -> None:
         self._entry = entry
         self._attr_unique_id = f"{entry.entry_id}_refresh_all"
-        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, entry.entry_id)}, name=NAME, manufacturer="EnBW")
 
     async def async_press(self) -> None:
         await asyncio.gather(*(c.async_manual_refresh() for c in self._entry.runtime_data.coordinators.values()))

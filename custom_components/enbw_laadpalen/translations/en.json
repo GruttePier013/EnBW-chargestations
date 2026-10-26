@@ -525,9 +525,9 @@
     }
   },
   "services": {
-    "refresh_all": {
-      "name": "Refresh all charging stations",
-      "description": "Fetches the current status of all charging stations right now (also resumes paused stations)."
+    "refresh": {
+      "name": "Refresh charging stations",
+      "description": "Fetches the current status right now. Without a target all stations are refreshed; pick devices or entities to refresh only those stations (also resumes paused stations)."
     }
   }
 }

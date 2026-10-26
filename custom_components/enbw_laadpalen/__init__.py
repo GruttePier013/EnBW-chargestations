@@ -6,6 +6,7 @@ import asyncio
 from datetime import timedelta
 from pathlib import Path
 
+import voluptuous as vol
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
@@ -14,6 +15,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.helpers.service import async_extract_referenced_entity_ids
 from homeassistant.helpers.typing import ConfigType
 
 from .api import EnbwApi
@@ -25,7 +27,7 @@ from .const import (
     DOMAIN,
     NAME,
     PLATFORMS,
-    SERVICE_REFRESH_ALL,
+    SERVICE_REFRESH,
     STATIC_URL,
 )
 from .coordinator import EnbwConfigEntry, EnbwData, StationCoordinator, issue_id
@@ -44,16 +46,30 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             [StaticPathConfig(STATIC_URL, str(Path(__file__).parent / "static"), False)]
         )
 
-    async def refresh_all(call: ServiceCall) -> None:
-        """Action ``enbw_laadpalen.refresh_all``: refresh every station of every entry (also resumes paused ones)."""
-        coordinators = [
-            c
-            for entry in hass.config_entries.async_loaded_entries(DOMAIN)
-            for c in entry.runtime_data.coordinators.values()
-        ]
-        await asyncio.gather(*(c.async_manual_refresh() for c in coordinators))
+    async def refresh(call: ServiceCall) -> None:
+        """Action ``enbw_laadpalen.refresh``: no target = all stations, otherwise only the targeted stations."""
+        coordinators: dict[str, StationCoordinator] = {}
+        for entry in hass.config_entries.async_loaded_entries(DOMAIN):
+            coordinators.update(entry.runtime_data.coordinators)
+        selected = async_extract_referenced_entity_ids(hass, call)
+        if selected.referenced or selected.indirectly_referenced or selected.referenced_devices:
+            dev_reg = dr.async_get(hass)
+            ent_reg = er.async_get(hass)
+            device_ids = set(selected.referenced_devices)
+            for entity_id in selected.referenced | selected.indirectly_referenced:
+                if (reg_entry := ent_reg.async_get(entity_id)) and reg_entry.device_id:
+                    device_ids.add(reg_entry.device_id)
+            keys = {
+                ident[1]
+                for device_id in device_ids
+                if (device := dev_reg.async_get(device_id))
+                for ident in device.identifiers
+                if ident[0] == DOMAIN
+            }
+            coordinators = {k: c for k, c in coordinators.items() if k in keys}
+        await asyncio.gather(*(c.async_manual_refresh() for c in coordinators.values()))
 
-    hass.services.async_register(DOMAIN, SERVICE_REFRESH_ALL, refresh_all)
+    hass.services.async_register(DOMAIN, SERVICE_REFRESH, refresh, schema=vol.Schema(cv.TARGET_SERVICE_FIELDS))
     return True
 
 
@@ -113,11 +129,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: EnbwConfigEntry) -> bool
     current = set(coordinators)
     for device in dr.async_entries_for_config_entry(dev_reg, entry.entry_id):
         ids = {i[1] for i in device.identifiers if i[0] == DOMAIN}
-        if ids and not ids & (current | {entry.entry_id}):
+        if ids and not ids & current:
             dev_reg.async_update_device(device.id, remove_config_entry_id=entry.entry_id)
 
-    # Removed entity (binary_sensor 'Persoon nabij'): clean up old registry items
     ent_reg = er.async_get(hass)
+    # Renamed entity: keep the existing sensor (and its history) under the new unique id
+    for key in coordinators:
+        if old := ent_reg.async_get_entity_id("sensor", DOMAIN, f"{key}_nearest_person_distance"):
+            ent_reg.async_update_entity(old, new_unique_id=f"{key}_distance_to_person")
+
+    # Removed entity (binary_sensor 'Persoon nabij'): clean up old registry items
     for key in coordinators:
         if old := ent_reg.async_get_entity_id("binary_sensor", DOMAIN, f"{key}_nearby"):
             ent_reg.async_remove(old)
@@ -152,8 +173,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: EnbwConfigEntry) -> boo
 async def async_remove_config_entry_device(hass: HomeAssistant, entry: EnbwConfigEntry, device: dr.DeviceEntry) -> bool:
     """Deleting a station's device removes that station from the configuration (same as Configure → remove)."""
     ids = {i[1] for i in device.identifiers if i[0] == DOMAIN}
-    if entry.entry_id in ids:
-        return False  # the 'EnBW Laadpalen' device holds the refresh-all button
     stations = get_stations(entry)
     remaining = [s for s in stations if station_key(s) not in ids]
     if len(remaining) != len(stations):

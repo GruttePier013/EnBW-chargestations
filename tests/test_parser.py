@@ -128,3 +128,12 @@ def test_picture_kind_unknown_when_stale():
     view = {"total": 2, "free": 2, "open": True}
     assert picture_kind(view) == "available"
     assert picture_kind(view, stale=True) == "unknown"
+
+
+def test_street_and_number():
+    from custom_components.enbw_laadpalen.parser import street_and_number
+
+    assert street_and_number("Voorbeeldlaan 14, Voorbeeldstad, NL") == "Voorbeeldlaan 14"
+    assert street_and_number("Voorbeeldstad, Proefstraat 1") == "Proefstraat 1"
+    assert street_and_number("Alleen een naam") == "Alleen een naam"
+    assert street_and_number(None) is None

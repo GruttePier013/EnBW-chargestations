@@ -54,7 +54,7 @@ PICTURE_AVAILABLE = f"{STATIC_URL}/station_available.png"  # all charge points a
 PICTURE_PARTIAL = f"{STATIC_URL}/station_partial.png"  # some available
 PICTURE_UNAVAILABLE = f"{STATIC_URL}/station_unavailable.png"
 PICTURE_UNKNOWN = f"{STATIC_URL}/station_unknown.png"  # no or outdated data
-SERVICE_REFRESH_ALL = "refresh_all"
+SERVICE_REFRESH = "refresh"
 PDOK_URL = "https://api.pdok.nl/bzk/locatieserver/search/v3_1/free"
 USER_AGENT = "HomeAssistant-enbw_laadpalen/0.1.0 (custom integration)"
 
@@ -96,7 +96,7 @@ NAMES_NL = {
     "zone_stop_after": "Vernieuwen in zone stoppen na",
     "location": "Laadpaal op kaart",
     "nearby_count": "Personen nabij",
-    "nearest_person_distance": "Afstand tot dichtstbijzijnde persoon",
+    "distance_to_person": "Afstand tot persoon",
     "error_count": "Opeenvolgende fouten",
     "paused": "Gepauzeerd",
     "charge_point_event": "Laadpunt vrijgekomen",

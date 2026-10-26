@@ -525,9 +525,9 @@
     }
   },
   "services": {
-    "refresh_all": {
-      "name": "Alle laadpalen vernieuwen",
-      "description": "Haalt direct de actuele status van alle laadpalen op (hervat ook gepauzeerde laadpalen)."
+    "refresh": {
+      "name": "Laadpalen vernieuwen",
+      "description": "Haalt direct de actuele status op. Zonder doel worden alle laadpalen ververst; kies apparaten of entiteiten om alleen die laadpalen te verversen (hervat ook gepauzeerde laadpalen)."
     }
   }
 }

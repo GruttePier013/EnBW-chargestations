@@ -28,15 +28,14 @@ Via *Configureren* voeg je laadpalen toe, bewerk of verwijder je ze en pas je de
 | **Beschikbaarheid visueel** | één icoon per laadpunt, bijv. `🅿️/⛔` (🅿️ beschikbaar, ⛔ bezet of gesloten, ⚫ storing, onbekend of verouderd) |
 | **Beschikbaar** | binary_sensor: minstens één laadpunt beschikbaar |
 | **Laadpunt 1 - 17kW**, … | binary_sensor per laadpunt: *Bezet*, *Vrij* of *Onbekend* |
-| **Connectortypen**, **Maximaal vermogen** | bijv. `CCS, Type 2` en kW |
-| **Laadpaal op kaart** | device_tracker met de status van *Laadpunten* en een marker: groen = alles beschikbaar, gedeeltelijk, rood = niets beschikbaar, grijs vraagteken = onbekend of verouderd |
-| **Personen nabij**, **Zone radius**, **Afstand tot dichtstbijzijnde persoon** | personen binnen de zone en hun afstand |
+| **Laadpaal op kaart** | device_tracker, genoemd naar straat en huisnummer, met de status van *Laadpunten* en een marker: groen = alles beschikbaar, gedeeltelijk, rood = niets beschikbaar, grijs vraagteken = onbekend of verouderd |
+| **Personen nabij**, **Zone radius** | personen binnen de zone |
 | **Vernieuwen**, **Vernieuwingsfrequentie** | knop en keuzelijst (standaard *Nooit*) |
 | **Vernieuwen in zone**, **Alleen vernieuwen bij naderen**, **Vernieuwingsfrequentie in zone**, **Vernieuwen in zone stoppen na** | zie *Verversen in de zone* |
 | **Laadpunt vrijgekomen** | event-entiteit |
-| Diagnose | *Gepauzeerd*, *Opeenvolgende fouten*, *Locatiecode*, *Opgehaalde laadpunten*, *Bijgewerkt* |
+| Diagnose | *Maximaal vermogen*, *Afstand tot persoon* (meters, met attributen `person`, `in_zone`, `approaching`), *Connectortypen* (standaard uit), *Gepauzeerd*, *Opeenvolgende fouten*, *Locatiecode*, *Opgehaalde laadpunten*, *Bijgewerkt* |
 
-Op het apparaat *EnBW Laadpalen* staat de knop **Alle laadpalen vernieuwen**.
+De knop **Alle laadpalen vernieuwen** (zonder apparaat) ververst alle laadpalen.
 
 ## Verversen in de zone
 Verversen gebeurt per *bezoek*, zodat de API niet onnodig wordt aangeroepen:
@@ -52,10 +51,10 @@ Verversen gebeurt per *bezoek*, zodat de API niet onnodig wordt aangeroepen:
 - **Per laadpaal:** oplopende wachttijd na een fout (tot 15 min); na X fouten achter elkaar (standaard 5) wordt de laadpaal gepauzeerd, met een melding onder *Herstellen*.
 - **Hele API:** na X fouten (standaard 10) of een HTTP 429 pauzeren alle automatische aanroepen tijdelijk (respecteert `Retry-After`).
 - **Spreiding:** automatische aanroepen hebben minstens N seconden ertussen (standaard 3 s).
-- De knop *Vernieuwen* en de actie *Alle laadpalen vernieuwen* omzeilen een pauze en hervatten bij succes.
+- De knop *Vernieuwen* en de actie `enbw_laadpalen.refresh` omzeilen een pauze en hervatten bij succes.
 
 ## Acties en gebeurtenissen
-**Actie** `enbw_laadpalen.refresh_all`: ververst alle laadpalen direct.
+**Actie** `enbw_laadpalen.refresh`: ververst direct. Zonder doel (`data: {}`) alle laadpalen; met een doel (apparaten, entiteiten of gebied, te kiezen in de UI) alleen de gekozen laadpalen.
 
 **Gebeurtenis** `enbw_laadpalen_charge_point_available`: een laadpunt gaat van bezet naar beschikbaar terwijl iemand in de zone is. Gegevens: `station_id`, `station_name`, `charge_point`, `number`, `evse`, `power_kw`, `connectors`, `available`, `total`, `persons`.
 

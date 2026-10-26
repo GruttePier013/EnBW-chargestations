@@ -170,6 +170,8 @@ class PlugTypes(EnbwEntity, SensorEntity):
     """Connector types of the station: 'CCS, Type 2'."""
 
     _attr_icon = "mdi:ev-plug-ccs2"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: StationCoordinator) -> None:
         super().__init__(coordinator, "plug_types")
@@ -190,6 +192,7 @@ class PlugTypes(EnbwEntity, SensorEntity):
 class MaxPower(EnbwEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.POWER
     _attr_native_unit_of_measurement = UnitOfPower.KILO_WATT
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, coordinator: StationCoordinator) -> None:
         super().__init__(coordinator, "max_power")
@@ -244,9 +247,10 @@ class NearestPersonDistance(EnbwEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.DISTANCE
     _attr_native_unit_of_measurement = UnitOfLength.METERS
     _attr_icon = "mdi:map-marker-distance"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, coordinator: StationCoordinator) -> None:
-        super().__init__(coordinator, "nearest_person_distance")
+        super().__init__(coordinator, "distance_to_person")
 
     @property
     def available(self) -> bool:

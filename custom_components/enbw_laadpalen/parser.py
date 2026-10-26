@@ -39,6 +39,14 @@ def map_status(raw: Any) -> str:
 _POSTCODE = re.compile(r"\b\d{4}\s?[A-Za-z]{2}\b|\b\d{5}\b(?=\s+[A-ZÄÖÜ])")
 
 
+def street_and_number(address: str | None) -> str | None:
+    """'Voorbeeldlaan 14, Voorbeeldstad, NL' -> 'Voorbeeldlaan 14' (first part with a house number)."""
+    parts = [x.strip() for x in str(address or "").split(",") if x.strip()]
+    if not parts:
+        return None
+    return next((x for x in parts if re.search(r"\d", x)), parts[0])
+
+
 def clean_address(value: str) -> str:
     """'Voorbeeldlaan 14, 1234AB Voorbeeldstad, NL' -> 'Voorbeeldlaan 14, Voorbeeldstad, NL' (postcode removed)."""
     text = _POSTCODE.sub("", value)
