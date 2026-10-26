@@ -108,13 +108,5 @@ Is de laatste succesvolle update ouder dan 1 dag (bijvoorbeeld bij vernieuwingsf
 *Apparaten en diensten → EnBW Laadpalen → ⋮ → Diagnostics downloaden* bevat de configuratie (API-sleutel afgeschermd), de API-gezondheid en het ruwe EnBW-antwoord per laadpaal. Handig bij een afwijkende status of ontbrekend veld.
 
 ## Beperkingen
-- De EnBW-API is niet officieel gedocumenteerd; de velden zijn afgeleid van de EnBW-kaart en kunnen veranderen.
+- De EnBW-API is niet officieel gedocumenteerd; de velden zijn afgeleid van de EnBW-charge map en kunnen veranderen.
 - Statussen die op een defect duiden (bijv. `OUT_OF_SERVICE`, `INOPERATIVE`, `FAULTED`) tellen als *buiten werking*; andere onbekende statussen tellen als bezet.
-- Gebruik de API terughoudend: verversen staat standaard op *Nooit* (knop, nabijheid of een eigen automatisering).
-
-## Ontwikkelen
-```
-pip install -r requirements_test.txt
-ruff check .
-pytest
-```
