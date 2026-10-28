@@ -117,3 +117,16 @@ Is de laatste succesvolle update ouder dan 1 dag (bijvoorbeeld bij vernieuwingsf
 ## Beperkingen
 - De EnBW-API is niet officieel gedocumenteerd; de velden zijn afgeleid van de EnBW-kaart en kunnen veranderen.
 - Statussen die op een defect duiden (bijv. `OUT_OF_SERVICE`, `INOPERATIVE`, `FAULTED`) tellen als *buiten werking*; andere onbekende statussen tellen als bezet.
+- Gebruik de API terughoudend: verversen staat standaard op *Nooit* (knop, nabijheid of een eigen automatisering).
+
+## Disclaimer en licentie
+Dit is een onofficiële, door de community gemaakte integratie. Ze is niet gelieerd aan, goedgekeurd door of ondersteund door EnBW. *EnBW* en het logo zijn eigendom van hun rechthebbenden. De integratie gebruikt een niet-gedocumenteerde API die kan veranderen of wegvallen, en wordt geleverd zonder enige garantie.
+
+De code is vrijgegeven in het publieke domein onder de [Unlicense](LICENSE): je mag haar vrij gebruiken, aanpassen en delen.
+
+## Ontwikkelen
+```
+pip install -r requirements_test.txt
+ruff check .
+pytest
+```
