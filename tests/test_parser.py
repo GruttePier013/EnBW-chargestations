@@ -1,4 +1,4 @@
-from custom_components.enbw_laadpalen.parser import (
+from custom_components.enbw_charging_stations.parser import (
     build_view,
     clean_address,
     compress_opening_hours,
@@ -29,7 +29,7 @@ DETAIL = {
 def test_view_counts_and_summary():
     v = build_view(DETAIL)
     assert (v["total"], v["free"], v["occupied"], v["broken"]) == (4, 2, 1, 1)
-    assert summarize(v) == "2/4 beschikbaar" and v["max_power_kw"] == 150 and v["open"] is True
+    assert summarize(v) == "2/4 available" and v["max_power_kw"] == 150 and v["open"] is True
 
 
 def test_plug_and_power_filter():
@@ -47,12 +47,12 @@ def test_fallback_to_counts_without_points():
 
 def test_closed_station():
     v = build_view({**DETAIL, "openingTimes": {"nextOpeningTime": "2026-10-22T08:00:00Z"}})
-    assert v["open"] is False and summarize(v) == "Gesloten"
+    assert v["open"] is False and summarize(v) == "Closed"
 
 
 def test_opening_hours_compress():
     s = "Mo: 08:00 - 20:00 Di: 08:00 - 20:00 Mi: 08:00 - 20:00 Do: 09:00 - 12:00"
-    assert compress_opening_hours(s) == "Ma-Wo: 08:00 - 20:00, Do: 09:00 - 12:00"  # German in, Dutch out
+    assert compress_opening_hours(s) == "Mon-Wed: 08:00 - 20:00, Thu: 09:00 - 12:00"  # German in, English out
 
 
 def test_helpers():
@@ -100,10 +100,10 @@ def test_picture_kind():
 
 
 def test_point_name_and_all_points():
-    assert point_name(1, 17.0) == "Laadpunt 1 - 17kW" and point_name(2, None) == "Laadpunt 2"
+    assert point_name(1, 17.0) == "Charge point 1 - 17kW" and point_name(2, None) == "Charge point 2"
     v = build_view(DETAIL, plugs=["CCS"])
     assert len(v["all_points"]) == 4 and len(v["points"]) == 2
-    assert v["all_points"][0]["name"] == "Laadpunt 1 - 150kW" and v["all_points"][2]["number"] == 3
+    assert v["all_points"][0]["name"] == "Charge point 1 - 150kW" and v["all_points"][2]["number"] == 3
 
 
 def test_clean_address_removes_postcode():
@@ -115,7 +115,7 @@ def test_clean_address_removes_postcode():
 
 
 def test_defect_statuses_count_as_out_of_service():
-    from custom_components.enbw_laadpalen.parser import map_status
+    from custom_components.enbw_charging_stations.parser import map_status
 
     for raw in ("INOPERATIVE", "faulted", "Out-of-Order", "BLOCKED", "UNAVAILABLE"):
         assert map_status(raw) == "out_of_service"
@@ -124,7 +124,7 @@ def test_defect_statuses_count_as_out_of_service():
 
 
 def test_picture_kind_unknown_when_stale():
-    from custom_components.enbw_laadpalen.parser import picture_kind
+    from custom_components.enbw_charging_stations.parser import picture_kind
 
     view = {"total": 2, "free": 2, "open": True}
     assert picture_kind(view) == "available_2"
@@ -132,7 +132,7 @@ def test_picture_kind_unknown_when_stale():
 
 
 def test_street_and_number():
-    from custom_components.enbw_laadpalen.parser import street_and_number
+    from custom_components.enbw_charging_stations.parser import street_and_number
 
     assert street_and_number("Voorbeeldlaan 14, Voorbeeldstad, NL") == "Voorbeeldlaan 14"
     assert street_and_number("Voorbeeldstad, Proefstraat 1") == "Proefstraat 1"
@@ -141,7 +141,7 @@ def test_street_and_number():
 
 
 def test_list_label_and_distance_format():
-    from custom_components.enbw_laadpalen.parser import format_distance, list_label
+    from custom_components.enbw_charging_stations.parser import format_distance, list_label
 
     assert list_label("Hoofdlaan 1, Amsterdam, NL") == "Hoofdlaan 1, Amsterdam"
     assert list_label("Hoofdlaan 1, Amsterdam") == "Hoofdlaan 1, Amsterdam"

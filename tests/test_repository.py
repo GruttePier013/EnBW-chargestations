@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from custom_components.enbw_laadpalen.const import DOMAIN
+from custom_components.enbw_charging_stations.const import DOMAIN
 
 ROOT = Path(__file__).resolve().parent.parent
 COMPONENTS = ROOT / "custom_components"

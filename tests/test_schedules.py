@@ -1,4 +1,4 @@
-from custom_components.enbw_laadpalen.schedules import DEFAULT_SCHEDULE, fires_at
+from custom_components.enbw_charging_stations.schedules import DEFAULT_SCHEDULE, fires_at
 
 
 def test_schedules():
@@ -8,7 +8,7 @@ def test_schedules():
 
 
 def test_zone_settings():
-    from custom_components.enbw_laadpalen.schedules import (
+    from custom_components.enbw_charging_stations.schedules import (
         DEFAULT_ZONE_INTERVAL,
         DEFAULT_ZONE_STOP_AFTER,
         ZONE_INTERVALS,

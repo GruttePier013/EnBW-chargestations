@@ -1,0 +1,601 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "EnBW Laadpalen",
+        "description": "Enter your EnBW API key (once; it applies to all stations). Get it from your browser's developer tools on the [EnBW station finder](https://www.enbw.com/elektromobilitaet/unterwegs-laden#ladestations-finder): look for a request to `/emobility-public-api/api/v1/chargestations` and copy the `Ocp-Apim-Subscription-Key` header.",
+        "data": {
+          "api_key": "API key"
+        }
+      },
+      "menu": {
+        "title": "Add charging stations",
+        "menu_options": {
+          "search": "Search stations in a zone on the map",
+          "manual": "Enter a station number"
+        }
+      },
+      "search": {
+        "title": "Search charging stations",
+        "description": "Type a place name and press Enter: the pin jumps there. Fine-tune the pin or the circle (50–5000 m), then choose *Submit* to search.",
+        "data": {
+          "location": "Zone on the map",
+          "address": "Place name or address"
+        }
+      },
+      "select_station": {
+        "title": "Select stations",
+        "description": "### ⚡ {count} charging points found.\n\n*Fun fact: together {total} kW of charging power in this zone.*\n\nSelect which ones to add. Every station becomes its own device.",
+        "data": {
+          "station_0": " ",
+          "station_1": " ",
+          "station_2": " ",
+          "station_3": " ",
+          "station_4": " ",
+          "station_5": " ",
+          "station_6": " ",
+          "station_7": " ",
+          "station_8": " ",
+          "station_9": " ",
+          "station_10": " ",
+          "station_11": " ",
+          "station_12": " ",
+          "station_13": " ",
+          "station_14": " ",
+          "station_15": " ",
+          "station_16": " ",
+          "station_17": " ",
+          "station_18": " ",
+          "station_19": " ",
+          "station_20": " ",
+          "station_21": " ",
+          "station_22": " ",
+          "station_23": " ",
+          "station_24": " "
+        },
+        "data_description": {
+          "station_0": "{status_0} available, ⚡{power_0} power, 📍{code_0}, {dist_0} from home",
+          "station_1": "{status_1} available, ⚡{power_1} power, 📍{code_1}, {dist_1} from home",
+          "station_2": "{status_2} available, ⚡{power_2} power, 📍{code_2}, {dist_2} from home",
+          "station_3": "{status_3} available, ⚡{power_3} power, 📍{code_3}, {dist_3} from home",
+          "station_4": "{status_4} available, ⚡{power_4} power, 📍{code_4}, {dist_4} from home",
+          "station_5": "{status_5} available, ⚡{power_5} power, 📍{code_5}, {dist_5} from home",
+          "station_6": "{status_6} available, ⚡{power_6} power, 📍{code_6}, {dist_6} from home",
+          "station_7": "{status_7} available, ⚡{power_7} power, 📍{code_7}, {dist_7} from home",
+          "station_8": "{status_8} available, ⚡{power_8} power, 📍{code_8}, {dist_8} from home",
+          "station_9": "{status_9} available, ⚡{power_9} power, 📍{code_9}, {dist_9} from home",
+          "station_10": "{status_10} available, ⚡{power_10} power, 📍{code_10}, {dist_10} from home",
+          "station_11": "{status_11} available, ⚡{power_11} power, 📍{code_11}, {dist_11} from home",
+          "station_12": "{status_12} available, ⚡{power_12} power, 📍{code_12}, {dist_12} from home",
+          "station_13": "{status_13} available, ⚡{power_13} power, 📍{code_13}, {dist_13} from home",
+          "station_14": "{status_14} available, ⚡{power_14} power, 📍{code_14}, {dist_14} from home",
+          "station_15": "{status_15} available, ⚡{power_15} power, 📍{code_15}, {dist_15} from home",
+          "station_16": "{status_16} available, ⚡{power_16} power, 📍{code_16}, {dist_16} from home",
+          "station_17": "{status_17} available, ⚡{power_17} power, 📍{code_17}, {dist_17} from home",
+          "station_18": "{status_18} available, ⚡{power_18} power, 📍{code_18}, {dist_18} from home",
+          "station_19": "{status_19} available, ⚡{power_19} power, 📍{code_19}, {dist_19} from home",
+          "station_20": "{status_20} available, ⚡{power_20} power, 📍{code_20}, {dist_20} from home",
+          "station_21": "{status_21} available, ⚡{power_21} power, 📍{code_21}, {dist_21} from home",
+          "station_22": "{status_22} available, ⚡{power_22} power, 📍{code_22}, {dist_22} from home",
+          "station_23": "{status_23} available, ⚡{power_23} power, 📍{code_23}, {dist_23} from home",
+          "station_24": "{status_24} available, ⚡{power_24} power, 📍{code_24}, {dist_24} from home"
+        }
+      },
+      "station_details": {
+        "title": "Set up station",
+        "description": "{progress}\n\nCurrent status: {status}\n\nTick the connector types to count (none = all) and optionally set a minimum power. The filter decides which charge points count in *Charge points*, *Available charge points* and *Available*.",
+        "data": {
+          "name": "Name",
+          "plug_types": "Connector types to count (empty = all)",
+          "min_power": "Minimum power (kW, 0 = no filter)"
+        }
+      },
+      "manual": {
+        "title": "Enter station number",
+        "description": "Enter one or more EnBW station numbers (`stationId`), separated by commas. Each becomes its own device. You then choose name and filter.",
+        "data": {
+          "station_ids": "Station number(s)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate",
+        "description": "EnBW rejected the API key. Enter a new key.",
+        "data": {
+          "api_key": "API key"
+        }
+      },
+      "defaults": {
+        "title": "Default values",
+        "description": "These values apply to every new station. Adjust them per station later via its configuration entities, and change all defaults in *Configure → Settings*. Refreshing in the zone works per visit: once on entry, then at the chosen frequency until the maximum period is over. With *Refresh only while approaching* a visit only refreshes while someone is getting closer.",
+        "data": {
+          "default_schedule": "Default refresh frequency",
+          "default_radius": "Default zone radius (m)",
+          "default_refresh_on_approach": "Default refresh in zone",
+          "default_zone_interval": "Refresh frequency while someone is in the zone",
+          "default_zone_stop_after": "Maximum period while someone is in the zone",
+          "default_approach_only": "Refresh only while approaching"
+        }
+      },
+      "select_station_single": {
+        "title": "Select stations",
+        "description": "### ⚡ {count} charging point found.\n\n*Fun fact: together {total} kW of charging power in this zone.*\n\nSelect which ones to add. Every station becomes its own device.",
+        "data": {
+          "station_0": " ",
+          "station_1": " ",
+          "station_2": " ",
+          "station_3": " ",
+          "station_4": " ",
+          "station_5": " ",
+          "station_6": " ",
+          "station_7": " ",
+          "station_8": " ",
+          "station_9": " ",
+          "station_10": " ",
+          "station_11": " ",
+          "station_12": " ",
+          "station_13": " ",
+          "station_14": " ",
+          "station_15": " ",
+          "station_16": " ",
+          "station_17": " ",
+          "station_18": " ",
+          "station_19": " ",
+          "station_20": " ",
+          "station_21": " ",
+          "station_22": " ",
+          "station_23": " ",
+          "station_24": " "
+        },
+        "data_description": {
+          "station_0": "{status_0} available, ⚡{power_0} power, 📍{code_0}, {dist_0} from home",
+          "station_1": "{status_1} available, ⚡{power_1} power, 📍{code_1}, {dist_1} from home",
+          "station_2": "{status_2} available, ⚡{power_2} power, 📍{code_2}, {dist_2} from home",
+          "station_3": "{status_3} available, ⚡{power_3} power, 📍{code_3}, {dist_3} from home",
+          "station_4": "{status_4} available, ⚡{power_4} power, 📍{code_4}, {dist_4} from home",
+          "station_5": "{status_5} available, ⚡{power_5} power, 📍{code_5}, {dist_5} from home",
+          "station_6": "{status_6} available, ⚡{power_6} power, 📍{code_6}, {dist_6} from home",
+          "station_7": "{status_7} available, ⚡{power_7} power, 📍{code_7}, {dist_7} from home",
+          "station_8": "{status_8} available, ⚡{power_8} power, 📍{code_8}, {dist_8} from home",
+          "station_9": "{status_9} available, ⚡{power_9} power, 📍{code_9}, {dist_9} from home",
+          "station_10": "{status_10} available, ⚡{power_10} power, 📍{code_10}, {dist_10} from home",
+          "station_11": "{status_11} available, ⚡{power_11} power, 📍{code_11}, {dist_11} from home",
+          "station_12": "{status_12} available, ⚡{power_12} power, 📍{code_12}, {dist_12} from home",
+          "station_13": "{status_13} available, ⚡{power_13} power, 📍{code_13}, {dist_13} from home",
+          "station_14": "{status_14} available, ⚡{power_14} power, 📍{code_14}, {dist_14} from home",
+          "station_15": "{status_15} available, ⚡{power_15} power, 📍{code_15}, {dist_15} from home",
+          "station_16": "{status_16} available, ⚡{power_16} power, 📍{code_16}, {dist_16} from home",
+          "station_17": "{status_17} available, ⚡{power_17} power, 📍{code_17}, {dist_17} from home",
+          "station_18": "{status_18} available, ⚡{power_18} power, 📍{code_18}, {dist_18} from home",
+          "station_19": "{status_19} available, ⚡{power_19} power, 📍{code_19}, {dist_19} from home",
+          "station_20": "{status_20} available, ⚡{power_20} power, 📍{code_20}, {dist_20} from home",
+          "station_21": "{status_21} available, ⚡{power_21} power, 📍{code_21}, {dist_21} from home",
+          "station_22": "{status_22} available, ⚡{power_22} power, 📍{code_22}, {dist_22} from home",
+          "station_23": "{status_23} available, ⚡{power_23} power, 📍{code_23}, {dist_23} from home",
+          "station_24": "{status_24} available, ⚡{power_24} power, 📍{code_24}, {dist_24} from home"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "EnBW rejects the API key.",
+      "cannot_connect": "Connection failed (EnBW or PDOK). See the log.",
+      "address_not_found": "Address not found by PDOK.",
+      "no_selection": "Select at least one station.",
+      "station_not_found": "EnBW does not know this station number.",
+      "invalid_station_id": "No valid station number found."
+    },
+    "abort": {
+      "no_stations": "No (new) stations found within this radius.",
+      "search_failed": "Stations could not be searched (EnBW unreachable). Try again later or add a station by number.",
+      "invalid_auth": "EnBW rejects the API key.",
+      "already_configured": "This station was already added.",
+      "single_instance_allowed": "Already configured. Add stations via Configure.",
+      "reauth_successful": "API key updated.",
+      "no_stations_configured": "No stations configured yet."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Manage stations",
+        "menu_options": {
+          "search": "Search stations in a zone on the map",
+          "manual": "Add a station by number",
+          "edit_station": "Edit a station",
+          "remove_stations": "Remove stations",
+          "settings": "Settings"
+        }
+      },
+      "search": {
+        "title": "Search charging stations",
+        "description": "Type a place name and press Enter: the pin jumps there. Fine-tune the pin or the circle (50–5000 m), then choose *Submit* to search.",
+        "data": {
+          "location": "Zone on the map",
+          "address": "Place name or address"
+        }
+      },
+      "select_station": {
+        "title": "Select stations",
+        "description": "### ⚡ {count} charging points found.\n\n*Fun fact: together {total} kW of charging power in this zone.*\n\nSelect which ones to add. Every station becomes its own device.",
+        "data": {
+          "station_0": " ",
+          "station_1": " ",
+          "station_2": " ",
+          "station_3": " ",
+          "station_4": " ",
+          "station_5": " ",
+          "station_6": " ",
+          "station_7": " ",
+          "station_8": " ",
+          "station_9": " ",
+          "station_10": " ",
+          "station_11": " ",
+          "station_12": " ",
+          "station_13": " ",
+          "station_14": " ",
+          "station_15": " ",
+          "station_16": " ",
+          "station_17": " ",
+          "station_18": " ",
+          "station_19": " ",
+          "station_20": " ",
+          "station_21": " ",
+          "station_22": " ",
+          "station_23": " ",
+          "station_24": " "
+        },
+        "data_description": {
+          "station_0": "{status_0} available, ⚡{power_0} power, 📍{code_0}, {dist_0} from home",
+          "station_1": "{status_1} available, ⚡{power_1} power, 📍{code_1}, {dist_1} from home",
+          "station_2": "{status_2} available, ⚡{power_2} power, 📍{code_2}, {dist_2} from home",
+          "station_3": "{status_3} available, ⚡{power_3} power, 📍{code_3}, {dist_3} from home",
+          "station_4": "{status_4} available, ⚡{power_4} power, 📍{code_4}, {dist_4} from home",
+          "station_5": "{status_5} available, ⚡{power_5} power, 📍{code_5}, {dist_5} from home",
+          "station_6": "{status_6} available, ⚡{power_6} power, 📍{code_6}, {dist_6} from home",
+          "station_7": "{status_7} available, ⚡{power_7} power, 📍{code_7}, {dist_7} from home",
+          "station_8": "{status_8} available, ⚡{power_8} power, 📍{code_8}, {dist_8} from home",
+          "station_9": "{status_9} available, ⚡{power_9} power, 📍{code_9}, {dist_9} from home",
+          "station_10": "{status_10} available, ⚡{power_10} power, 📍{code_10}, {dist_10} from home",
+          "station_11": "{status_11} available, ⚡{power_11} power, 📍{code_11}, {dist_11} from home",
+          "station_12": "{status_12} available, ⚡{power_12} power, 📍{code_12}, {dist_12} from home",
+          "station_13": "{status_13} available, ⚡{power_13} power, 📍{code_13}, {dist_13} from home",
+          "station_14": "{status_14} available, ⚡{power_14} power, 📍{code_14}, {dist_14} from home",
+          "station_15": "{status_15} available, ⚡{power_15} power, 📍{code_15}, {dist_15} from home",
+          "station_16": "{status_16} available, ⚡{power_16} power, 📍{code_16}, {dist_16} from home",
+          "station_17": "{status_17} available, ⚡{power_17} power, 📍{code_17}, {dist_17} from home",
+          "station_18": "{status_18} available, ⚡{power_18} power, 📍{code_18}, {dist_18} from home",
+          "station_19": "{status_19} available, ⚡{power_19} power, 📍{code_19}, {dist_19} from home",
+          "station_20": "{status_20} available, ⚡{power_20} power, 📍{code_20}, {dist_20} from home",
+          "station_21": "{status_21} available, ⚡{power_21} power, 📍{code_21}, {dist_21} from home",
+          "station_22": "{status_22} available, ⚡{power_22} power, 📍{code_22}, {dist_22} from home",
+          "station_23": "{status_23} available, ⚡{power_23} power, 📍{code_23}, {dist_23} from home",
+          "station_24": "{status_24} available, ⚡{power_24} power, 📍{code_24}, {dist_24} from home"
+        }
+      },
+      "station_details": {
+        "title": "Set up station",
+        "description": "{progress}\n\nCurrent status: {status}\n\nTick the connector types to count (none = all) and optionally set a minimum power. The filter decides which charge points count in *Charge points*, *Available charge points* and *Available*.",
+        "data": {
+          "name": "Name",
+          "plug_types": "Connector types to count (empty = all)",
+          "min_power": "Minimum power (kW, 0 = no filter)"
+        }
+      },
+      "manual": {
+        "title": "Enter station number",
+        "description": "Enter one or more EnBW station numbers (`stationId`), separated by commas. Each becomes its own device. You then choose name and filter.",
+        "data": {
+          "station_ids": "Station number(s)"
+        }
+      },
+      "edit_station": {
+        "title": "Which station?",
+        "data": {
+          "station": "Station"
+        }
+      },
+      "edit_details": {
+        "title": "Edit station",
+        "description": "Move the pin to adjust the position of this station on the HA map. The adjusted position is also used for the proximity of persons.",
+        "data": {
+          "name": "Name",
+          "plug_types": "Connector types to count (empty = all)",
+          "min_power": "Minimum power (kW, 0 = no filter)",
+          "location": "Position on the map",
+          "reset_location": "Restore the EnBW position"
+        }
+      },
+      "remove_stations": {
+        "title": "Remove stations",
+        "data": {
+          "remove": "Stations to remove"
+        }
+      },
+      "settings": {
+        "title": "Settings",
+        "description": "Choose which persons count for proximity (empty = all persons). After leaving the zone a new refresh visit only starts once the zone was empty this long, so GPS jitter at the edge causes no extra refreshes.",
+        "data": {
+          "persons": "Tracked persons",
+          "zone_cooldown": "Re-activate after leaving (min)",
+          "map_logo": "Use the availability picture on the HA map (off = plain icon)"
+        },
+        "sections": {
+          "defaults": {
+            "name": "Default values for stations",
+            "description": "Apply to new stations. Tick *Apply to existing stations* to also set them on all existing stations (off by default; their own choices are kept otherwise).",
+            "data": {
+              "default_schedule": "Default refresh frequency",
+              "default_radius": "Default zone radius (m)",
+              "default_refresh_on_approach": "Default refresh in zone",
+              "default_zone_interval": "Refresh frequency while someone is in the zone",
+              "default_zone_stop_after": "Maximum period while someone is in the zone",
+              "apply_existing": "Apply to existing stations",
+              "default_approach_only": "Refresh only while approaching"
+            }
+          },
+          "api": {
+            "name": "API key",
+            "description": "Only change if EnBW rejects the current key.",
+            "data": {
+              "api_key": "API key"
+            }
+          },
+          "protection": {
+            "name": "Error protection",
+            "description": "Pauses automatic refreshing after repeated errors so EnBW is not hammered. Manual refresh (button) always works and resumes a paused station.",
+            "data": {
+              "max_errors": "Pause a station after this many consecutive errors",
+              "api_max_errors": "Pause all automatic calls after this many consecutive API errors",
+              "api_spacing": "Wait between automatic API calls (seconds)"
+            }
+          }
+        }
+      },
+      "select_station_single": {
+        "title": "Select stations",
+        "description": "### ⚡ {count} charging point found.\n\n*Fun fact: together {total} kW of charging power in this zone.*\n\nSelect which ones to add. Every station becomes its own device.",
+        "data": {
+          "station_0": " ",
+          "station_1": " ",
+          "station_2": " ",
+          "station_3": " ",
+          "station_4": " ",
+          "station_5": " ",
+          "station_6": " ",
+          "station_7": " ",
+          "station_8": " ",
+          "station_9": " ",
+          "station_10": " ",
+          "station_11": " ",
+          "station_12": " ",
+          "station_13": " ",
+          "station_14": " ",
+          "station_15": " ",
+          "station_16": " ",
+          "station_17": " ",
+          "station_18": " ",
+          "station_19": " ",
+          "station_20": " ",
+          "station_21": " ",
+          "station_22": " ",
+          "station_23": " ",
+          "station_24": " "
+        },
+        "data_description": {
+          "station_0": "{status_0} available, ⚡{power_0} power, 📍{code_0}, {dist_0} from home",
+          "station_1": "{status_1} available, ⚡{power_1} power, 📍{code_1}, {dist_1} from home",
+          "station_2": "{status_2} available, ⚡{power_2} power, 📍{code_2}, {dist_2} from home",
+          "station_3": "{status_3} available, ⚡{power_3} power, 📍{code_3}, {dist_3} from home",
+          "station_4": "{status_4} available, ⚡{power_4} power, 📍{code_4}, {dist_4} from home",
+          "station_5": "{status_5} available, ⚡{power_5} power, 📍{code_5}, {dist_5} from home",
+          "station_6": "{status_6} available, ⚡{power_6} power, 📍{code_6}, {dist_6} from home",
+          "station_7": "{status_7} available, ⚡{power_7} power, 📍{code_7}, {dist_7} from home",
+          "station_8": "{status_8} available, ⚡{power_8} power, 📍{code_8}, {dist_8} from home",
+          "station_9": "{status_9} available, ⚡{power_9} power, 📍{code_9}, {dist_9} from home",
+          "station_10": "{status_10} available, ⚡{power_10} power, 📍{code_10}, {dist_10} from home",
+          "station_11": "{status_11} available, ⚡{power_11} power, 📍{code_11}, {dist_11} from home",
+          "station_12": "{status_12} available, ⚡{power_12} power, 📍{code_12}, {dist_12} from home",
+          "station_13": "{status_13} available, ⚡{power_13} power, 📍{code_13}, {dist_13} from home",
+          "station_14": "{status_14} available, ⚡{power_14} power, 📍{code_14}, {dist_14} from home",
+          "station_15": "{status_15} available, ⚡{power_15} power, 📍{code_15}, {dist_15} from home",
+          "station_16": "{status_16} available, ⚡{power_16} power, 📍{code_16}, {dist_16} from home",
+          "station_17": "{status_17} available, ⚡{power_17} power, 📍{code_17}, {dist_17} from home",
+          "station_18": "{status_18} available, ⚡{power_18} power, 📍{code_18}, {dist_18} from home",
+          "station_19": "{status_19} available, ⚡{power_19} power, 📍{code_19}, {dist_19} from home",
+          "station_20": "{status_20} available, ⚡{power_20} power, 📍{code_20}, {dist_20} from home",
+          "station_21": "{status_21} available, ⚡{power_21} power, 📍{code_21}, {dist_21} from home",
+          "station_22": "{status_22} available, ⚡{power_22} power, 📍{code_22}, {dist_22} from home",
+          "station_23": "{status_23} available, ⚡{power_23} power, 📍{code_23}, {dist_23} from home",
+          "station_24": "{status_24} available, ⚡{power_24} power, 📍{code_24}, {dist_24} from home"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "EnBW rejects the API key.",
+      "cannot_connect": "Connection failed (EnBW or PDOK). See the log.",
+      "address_not_found": "Address not found by PDOK.",
+      "no_selection": "Select at least one station.",
+      "station_not_found": "EnBW does not know this station number.",
+      "invalid_station_id": "No valid station number found."
+    },
+    "abort": {
+      "no_stations": "No (new) stations found within this radius.",
+      "search_failed": "Stations could not be searched (EnBW unreachable). Try again later or add a station by number.",
+      "invalid_auth": "EnBW rejects the API key.",
+      "already_configured": "This station was already added.",
+      "single_instance_allowed": "Already configured. Add stations via Configure.",
+      "reauth_successful": "API key updated.",
+      "no_stations_configured": "No stations configured yet."
+    }
+  },
+  "entity": {
+    "select": {
+      "refresh_schedule": {
+        "state": {
+          "never": "Never",
+          "daily": "Daily (06:00)",
+          "hourly": "Hourly",
+          "every_30_min_06_09": "Every 30 min (06–09)",
+          "every_30_min_16_19": "Every 30 min (16–19)",
+          "every_15_min": "Every 15 min",
+          "every_5_min": "Every 5 min",
+          "every_5_min_rush": "Every 5 min (06–09 and 16–19)"
+        },
+        "name": "Refresh schedule"
+      },
+      "zone_refresh_interval": {
+        "state": {
+          "on_entry": "On entry (once)",
+          "every_2_min": "Every 2 min",
+          "every_5_min": "Every 5 min",
+          "every_10_min": "Every 10 min",
+          "every_15_min": "Every 15 min"
+        },
+        "name": "Zone refresh interval"
+      },
+      "zone_refresh_stop": {
+        "state": {
+          "10_min": "10 min",
+          "30_min": "30 min",
+          "60_min": "60 min",
+          "120_min": "120 min",
+          "unlimited": "Unlimited"
+        },
+        "name": "Stop zone refresh after"
+      }
+    },
+    "sensor": {
+      "availability_visual": {
+        "name": "Availability (visual)"
+      },
+      "points_available": {
+        "name": "Available charge points"
+      },
+      "connector_types": {
+        "name": "Connector types"
+      },
+      "power_max": {
+        "name": "Maximum power"
+      },
+      "person_nearby": {
+        "name": "Persons nearby"
+      },
+      "person_distance": {
+        "name": "Person distance"
+      },
+      "points_fetched": {
+        "name": "Fetched charge points"
+      },
+      "error_count": {
+        "name": "Consecutive errors"
+      },
+      "data_timestamp": {
+        "name": "Data timestamp"
+      },
+      "id": {
+        "name": "Location code"
+      },
+      "distance": {
+        "name": "Distance"
+      },
+      "location": {
+        "name": "Station on map"
+      }
+    },
+    "binary_sensor": {
+      "charge_point": {
+        "name": "Charge point {label}",
+        "state": {
+          "on": "Occupied",
+          "off": "Free"
+        }
+      },
+      "availability": {
+        "name": "Availability"
+      },
+      "error_paused": {
+        "name": "Paused after errors"
+      }
+    },
+    "event": {
+      "event": {
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "charge_point_available": "Charge point available"
+            }
+          }
+        },
+        "name": "Charge point available"
+      }
+    },
+    "button": {
+      "refresh": {
+        "name": "Refresh"
+      },
+      "refresh_all": {
+        "name": "Refresh all stations"
+      }
+    },
+    "number": {
+      "zone_radius": {
+        "name": "Zone radius"
+      }
+    },
+    "switch": {
+      "zone_refresh": {
+        "name": "Refresh in zone"
+      },
+      "zone_refresh_approach": {
+        "name": "Refresh when approaching"
+      }
+    }
+  },
+  "selector": {
+    "refresh_schedule": {
+      "options": {
+        "never": "Never",
+        "daily": "Daily (06:00)",
+        "hourly": "Hourly",
+        "every_30_min_06_09": "Every 30 min (06–09)",
+        "every_30_min_16_19": "Every 30 min (16–19)",
+        "every_15_min": "Every 15 min",
+        "every_5_min": "Every 5 min",
+        "every_5_min_rush": "Every 5 min (06–09 and 16–19)"
+      }
+    },
+    "zone_refresh": {
+      "options": {
+        "on_entry": "On entry (once)",
+        "every_2_min": "Every 2 min",
+        "every_5_min": "Every 5 min",
+        "every_10_min": "Every 10 min",
+        "every_15_min": "Every 15 min"
+      }
+    },
+    "zone_stop_after": {
+      "options": {
+        "10_min": "10 min",
+        "30_min": "30 min",
+        "60_min": "60 min",
+        "120_min": "120 min",
+        "unlimited": "Unlimited"
+      }
+    }
+  },
+  "issues": {
+    "station_paused": {
+      "title": "Station paused",
+      "description": "Automatic refreshing of **{name}** is paused after {errors} consecutive errors. Press the station's *Refresh* button to try again; on success automatic refreshing resumes."
+    },
+    "api_paused": {
+      "title": "EnBW API temporarily paused",
+      "description": "After {errors} consecutive errors (or a rate limit from EnBW) automatic calls are paused temporarily and resumed later with an increasing delay. Manual refresh always works."
+    }
+  },
+  "services": {
+    "refresh": {
+      "name": "Refresh charging stations",
+      "description": "Fetches the current status right now. Without a target all stations are refreshed; pick devices or entities to refresh only those stations (also resumes paused stations)."
+    }
+  }
+}

@@ -8,8 +8,8 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.enbw_laadpalen.api import AddressNotFound
-from custom_components.enbw_laadpalen.const import API_BASE, DOMAIN, PDOK_URL
+from custom_components.enbw_charging_stations.api import AddressNotFound
+from custom_components.enbw_charging_stations.const import API_BASE, DOMAIN, PDOK_URL
 
 from .test_parser import DETAIL
 
@@ -45,23 +45,23 @@ def eid(hass, platform, key):
 async def test_entities(hass: HomeAssistant, aioclient_mock):
     aioclient_mock.get(DETAIL_URL, json=DETAIL)
     await setup(hass, entry())
-    st = hass.states.get(eid(hass, "sensor", "points"))
-    assert st.state == "2/4 beschikbaar" and len(st.attributes["charge_points"]) == 4
-    assert hass.states.get(eid(hass, "sensor", "free_points")).state == "2"
-    assert hass.states.get(eid(hass, "sensor", "plug_types")) is None  # disabled by default (diagnostic)
-    assert hass.states.get(eid(hass, "binary_sensor", "available")).state == "on"
+    st = hass.states.get(eid(hass, "sensor", "location"))
+    assert st.state == "2/4 available" and len(st.attributes["charge_points"]) == 4
+    assert hass.states.get(eid(hass, "sensor", "points_available")).state == "2"
+    assert hass.states.get(eid(hass, "sensor", "connector_types")) is None  # disabled by default (diagnostic)
+    assert hass.states.get(eid(hass, "binary_sensor", "availability")).state == "on"
     visual = hass.states.get(eid(hass, "sensor", "availability_visual"))
     assert visual.state == "🅿️/⛔/🅿️/⚫" and visual.attributes["per_charge_point"][1] == {
-        "charge_point": "Laadpunt 2 - 150kW",
+        "charge_point": "Charge point 2 - 150kW",
         "icon": "⛔",
     }
-    assert hass.states.get(eid(hass, "sensor", "station_id")).state == "123"
+    assert hass.states.get(eid(hass, "sensor", "id")).state == "123"
     reg = er.async_get(hass)
     expected = {
-        "A": ("off", "Laadpunt 1 - 150kW"),
-        "B": ("on", "Laadpunt 2 - 150kW"),
-        "C": ("off", "Laadpunt 3 - 22kW"),
-        "D": ("unknown", "Laadpunt 4 - 22kW"),
+        "A": ("off", "Charge point 1 - 150kW"),
+        "B": ("on", "Charge point 2 - 150kW"),
+        "C": ("off", "Charge point 3 - 22kW"),
+        "D": ("unknown", "Charge point 4 - 22kW"),
     }
     for evse, (state, name) in expected.items():
         ent_id = reg.async_get_entity_id("binary_sensor", DOMAIN, f"123_point_{evse}")
@@ -78,7 +78,7 @@ async def test_filter_and_refresh_button(hass: HomeAssistant, aioclient_mock):
         domain=DOMAIN, data={"api_key": "k", "stations": [{**STATION, "plugs": ["CCS"]}]}, unique_id=DOMAIN
     )
     await setup(hass, e)
-    assert hass.states.get(eid(hass, "sensor", "points")).state == "1/2 beschikbaar"
+    assert hass.states.get(eid(hass, "sensor", "location")).state == "1/2 available"
     await hass.services.async_call("button", "press", {"entity_id": eid(hass, "button", "refresh")}, blocking=True)
     assert aioclient_mock.call_count == 2
 
@@ -86,11 +86,11 @@ async def test_filter_and_refresh_button(hass: HomeAssistant, aioclient_mock):
 async def test_unavailable_when_api_fails_and_recovers(hass: HomeAssistant, aioclient_mock):
     aioclient_mock.get(DETAIL_URL, status=500)
     await setup(hass, entry())
-    assert hass.states.get(eid(hass, "sensor", "points")).state == "unavailable"
+    assert hass.states.get(eid(hass, "sensor", "location")).state == "Unknown"  # marker stays, grey question mark
     aioclient_mock.clear_requests()
     aioclient_mock.get(DETAIL_URL, json=DETAIL)
     await hass.services.async_call("button", "press", {"entity_id": eid(hass, "button", "refresh")}, blocking=True)
-    assert hass.states.get(eid(hass, "sensor", "points")).state == "2/4 beschikbaar"
+    assert hass.states.get(eid(hass, "sensor", "location")).state == "2/4 available"
 
 
 async def test_auth_failure_starts_reauth(hass: HomeAssistant, aioclient_mock):
@@ -110,11 +110,11 @@ async def test_nearby_person_names_and_binary_removed(hass: HomeAssistant, aiocl
     assert await hass.config_entries.async_setup(e.entry_id)
     await hass.async_block_till_done()
     assert reg.async_get_entity_id("binary_sensor", DOMAIN, "123_nearby") is None
-    assert hass.states.get(eid(hass, "sensor", "nearby_count")).state == "Geen"
+    assert hass.states.get(eid(hass, "sensor", "person_nearby")).state == "None"
     hass.states.async_set("person.alice", "home", {"latitude": 52.3701, "longitude": 4.9001, "friendly_name": "Alice"})
     hass.states.async_set("person.bob", "home", {"latitude": 52.3702, "longitude": 4.9002, "friendly_name": "Bob"})
     await hass.async_block_till_done()
-    st = hass.states.get(eid(hass, "sensor", "nearby_count"))
+    st = hass.states.get(eid(hass, "sensor", "person_nearby"))
     assert st.state == "Alice, Bob" and st.attributes["count"] == 2
 
 
@@ -183,7 +183,7 @@ async def test_search_flow_and_options_remove(hass: HomeAssistant, aioclient_moc
     assert r["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
     assert [s["id"] for s in e.options["stations"]] == ["123"]
-    assert eid(hass, "sensor", "points") is not None
+    assert eid(hass, "sensor", "location") is not None
 
     r = await hass.config_entries.options.async_init(e.entry_id)
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"next_step_id": "remove_stations"})
@@ -197,7 +197,7 @@ async def test_map_picture_follows_availability(hass: HomeAssistant, aioclient_m
     aioclient_mock.get(DETAIL_URL, json={**DETAIL, "chargePoints": [free_a, free_c]})
     await setup(hass, entry())
     ent = eid(hass, "sensor", "location")
-    base = "/enbw_laadpalen/static/"
+    base = "/enbw_charging_stations/static/"
     assert hass.states.get(ent).attributes["entity_picture"] == base + "station_available_2.png"
     for points, expected in (([free_a, busy], "station_available.png"), ([busy], "station_unavailable.png")):
         aioclient_mock.clear_requests()
@@ -223,14 +223,14 @@ def test_brand_and_static_files_exist():
 
 
 async def _zone_setup(hass, aioclient_mock, monkeypatch, approach_only=False):
-    from custom_components.enbw_laadpalen import coordinator as coord_mod
+    from custom_components.enbw_charging_stations import coordinator as coord_mod
 
     monkeypatch.setattr(coord_mod, "MIN_APPROACH_REFRESH_GAP", 0)
     aioclient_mock.get(DETAIL_URL, json=DETAIL)
     await setup(hass, entry())
     if not approach_only:
         await hass.services.async_call(
-            "switch", "turn_off", {"entity_id": eid(hass, "switch", "approach_only")}, blocking=True
+            "switch", "turn_off", {"entity_id": eid(hass, "switch", "zone_refresh_approach")}, blocking=True
         )
 
 
@@ -251,10 +251,10 @@ async def _advance(hass, freezer, minutes: float):
 
 async def test_zone_defaults(hass: HomeAssistant, aioclient_mock, monkeypatch):
     await _zone_setup(hass, aioclient_mock, monkeypatch, approach_only=True)
-    assert hass.states.get(eid(hass, "select", "zone_refresh")).state == "every_5_min"
-    assert hass.states.get(eid(hass, "select", "zone_stop_after")).state == "30_min"
-    assert hass.states.get(eid(hass, "number", "proximity_radius")).state == "1000"
-    assert hass.states.get(eid(hass, "switch", "approach_only")).state == "on"
+    assert hass.states.get(eid(hass, "select", "zone_refresh_interval")).state == "every_5_min"
+    assert hass.states.get(eid(hass, "select", "zone_refresh_stop")).state == "30_min"
+    assert hass.states.get(eid(hass, "number", "zone_radius")).state == "1000"
+    assert hass.states.get(eid(hass, "switch", "zone_refresh_approach")).state == "on"
 
 
 async def test_zone_visit_window(hass: HomeAssistant, aioclient_mock, monkeypatch, freezer):
@@ -282,7 +282,7 @@ async def test_zone_cooldown_prevents_new_visit(hass: HomeAssistant, aioclient_m
     await hass.services.async_call(
         "select",
         "select_option",
-        {"entity_id": eid(hass, "select", "zone_refresh"), "option": "on_entry"},
+        {"entity_id": eid(hass, "select", "zone_refresh_interval"), "option": "on_entry"},
         blocking=True,
     )
     _person(hass, True)
@@ -302,7 +302,7 @@ async def test_zone_cooldown_prevents_new_visit(hass: HomeAssistant, aioclient_m
 
 async def test_zone_switch_off_stops_everything(hass: HomeAssistant, aioclient_mock, monkeypatch, freezer):
     await _zone_setup(hass, aioclient_mock, monkeypatch)
-    switch_id = eid(hass, "switch", "refresh_on_approach")
+    switch_id = eid(hass, "switch", "zone_refresh")
     await hass.services.async_call("switch", "turn_off", {"entity_id": switch_id}, blocking=True)
     _person(hass, True)
     await hass.async_block_till_done()
@@ -365,18 +365,18 @@ async def test_new_entities_start_with_defaults(hass: HomeAssistant, aioclient_m
         ),
     )
     assert hass.states.get(eid(hass, "select", "refresh_schedule")).state == "hourly"
-    assert hass.states.get(eid(hass, "number", "proximity_radius")).state == "500"
-    assert hass.states.get(eid(hass, "switch", "refresh_on_approach")).state == "off"
-    assert hass.states.get(eid(hass, "switch", "approach_only")).state == "off"
-    assert hass.states.get(eid(hass, "select", "zone_refresh")).state == "every_10_min"
-    assert hass.states.get(eid(hass, "select", "zone_stop_after")).state == "60_min"
+    assert hass.states.get(eid(hass, "number", "zone_radius")).state == "500"
+    assert hass.states.get(eid(hass, "switch", "zone_refresh")).state == "off"
+    assert hass.states.get(eid(hass, "switch", "zone_refresh_approach")).state == "off"
+    assert hass.states.get(eid(hass, "select", "zone_refresh_interval")).state == "every_10_min"
+    assert hass.states.get(eid(hass, "select", "zone_refresh_stop")).state == "60_min"
 
 
 async def test_settings_apply_to_existing_only_when_ticked(hass: HomeAssistant, aioclient_mock):
     aioclient_mock.get(DETAIL_URL, json=DETAIL)
     e = entry()
     await setup(hass, e)
-    sel = eid(hass, "select", "zone_refresh")
+    sel = eid(hass, "select", "zone_refresh_interval")
     await hass.services.async_call(
         "select", "select_option", {"entity_id": sel, "option": "every_15_min"}, blocking=True
     )
@@ -391,18 +391,18 @@ async def test_settings_apply_to_existing_only_when_ticked(hass: HomeAssistant, 
     await hass.config_entries.options.async_configure(r["flow_id"], _settings_input(defaults=new))
     await hass.async_block_till_done()
     assert e.options["default_zone_interval"] == "every_2_min"
-    assert hass.states.get(eid(hass, "select", "zone_refresh")).state == "every_15_min"
-    assert hass.states.get(eid(hass, "number", "proximity_radius")).state != "2000"
+    assert hass.states.get(eid(hass, "select", "zone_refresh_interval")).state == "every_15_min"
+    assert hass.states.get(eid(hass, "number", "zone_radius")).state != "2000"
     # checkbox on: existing stations get the defaults too
     r = await _open_settings(hass, e)
     await hass.config_entries.options.async_configure(
         r["flow_id"], _settings_input(defaults={**new, "apply_existing": True})
     )
     await hass.async_block_till_done()
-    assert hass.states.get(eid(hass, "select", "zone_refresh")).state == "every_2_min"
-    assert hass.states.get(eid(hass, "number", "proximity_radius")).state == "2000"
-    assert hass.states.get(eid(hass, "switch", "refresh_on_approach")).state == "off"
-    assert hass.states.get(eid(hass, "switch", "approach_only")).state == "off"
+    assert hass.states.get(eid(hass, "select", "zone_refresh_interval")).state == "every_2_min"
+    assert hass.states.get(eid(hass, "number", "zone_radius")).state == "2000"
+    assert hass.states.get(eid(hass, "switch", "zone_refresh")).state == "off"
+    assert hass.states.get(eid(hass, "switch", "zone_refresh_approach")).state == "off"
 
 
 async def test_settings_api_key_change(hass: HomeAssistant, aioclient_mock):
@@ -513,7 +513,7 @@ async def test_zone_unknown_place_shows_error(hass: HomeAssistant, aioclient_moc
 async def test_geocode_prefers_woonplaats_for_plain_place_names(hass: HomeAssistant, aioclient_mock):
     from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-    from custom_components.enbw_laadpalen.api import EnbwApi
+    from custom_components.enbw_charging_stations.api import EnbwApi
 
     docs = {
         "response": {
@@ -533,7 +533,7 @@ async def test_geocode_prefers_woonplaats_for_plain_place_names(hass: HomeAssist
 async def test_geocode_falls_back_to_any_type(hass: HomeAssistant, aioclient_mock):
     from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-    from custom_components.enbw_laadpalen.api import EnbwApi
+    from custom_components.enbw_charging_stations.api import EnbwApi
 
     aioclient_mock.get(PDOK_URL, json={"response": {"docs": []}})
     with pytest.raises(AddressNotFound):
@@ -560,7 +560,7 @@ async def test_api_spaces_automatic_calls(hass: HomeAssistant, aioclient_mock):
 
     from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-    from custom_components.enbw_laadpalen.api import EnbwApi
+    from custom_components.enbw_charging_stations.api import EnbwApi
 
     aioclient_mock.get(DETAIL_URL, json=DETAIL)
     api = EnbwApi(async_get_clientsession(hass), "k", spacing=0.05)
@@ -575,7 +575,7 @@ async def test_api_spaces_automatic_calls(hass: HomeAssistant, aioclient_mock):
 async def test_api_circuit_breaker_and_manual_bypass(hass: HomeAssistant, aioclient_mock):
     from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-    from custom_components.enbw_laadpalen.api import EnbwApi, EnbwApiError, EnbwBlocked
+    from custom_components.enbw_charging_stations.api import EnbwApi, EnbwApiError, EnbwBlocked
 
     aioclient_mock.get(DETAIL_URL, status=500)
     api = EnbwApi(async_get_clientsession(hass), "k", max_errors=3)
@@ -598,7 +598,7 @@ async def test_api_circuit_breaker_and_manual_bypass(hass: HomeAssistant, aiocli
 async def test_api_rate_limit_uses_retry_after(hass: HomeAssistant, aioclient_mock):
     from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-    from custom_components.enbw_laadpalen.api import EnbwApi, EnbwApiError
+    from custom_components.enbw_charging_stations.api import EnbwApi, EnbwApiError
 
     aioclient_mock.get(DETAIL_URL, status=429, headers={"Retry-After": "120"})
     api = EnbwApi(async_get_clientsession(hass), "k", max_errors=10)
@@ -634,7 +634,7 @@ async def test_station_pauses_after_errors_and_resumes_manually(hass: HomeAssist
     await coordinator.async_manual_refresh()
     assert coordinator.paused
     assert ir.async_get(hass).async_get_issue(DOMAIN, "station_paused_123") is not None
-    assert hass.states.get(eid(hass, "binary_sensor", "paused")).state == "on"
+    assert hass.states.get(eid(hass, "binary_sensor", "error_paused")).state == "on"
     calls = aioclient_mock.call_count
     await coordinator.async_auto_refresh()  # automatic refreshes are skipped while paused
     assert aioclient_mock.call_count == calls
@@ -643,7 +643,7 @@ async def test_station_pauses_after_errors_and_resumes_manually(hass: HomeAssist
     await coordinator.async_manual_refresh()  # a manual refresh works and resumes the station
     assert not coordinator.paused and coordinator.consecutive_errors == 0
     assert ir.async_get(hass).async_get_issue(DOMAIN, "station_paused_123") is None
-    assert hass.states.get(eid(hass, "binary_sensor", "paused")).state == "off"
+    assert hass.states.get(eid(hass, "binary_sensor", "error_paused")).state == "off"
 
 
 async def test_station_backs_off_after_an_error(hass: HomeAssistant, aioclient_mock):
@@ -668,60 +668,139 @@ async def test_api_paused_skips_automatic_refresh(hass: HomeAssistant, aioclient
     calls = aioclient_mock.call_count
     await coordinator.async_auto_refresh()
     assert aioclient_mock.call_count == calls
-    assert hass.states.get(eid(hass, "sensor", "points")).state == "2/4 beschikbaar"  # keeps the last data
+    assert hass.states.get(eid(hass, "sensor", "location")).state == "2/4 available"  # keeps the last data
 
 
 # ---------------------------------------------------------------- event: charge point freed
-async def test_freed_charge_point_fires_event_only_with_people_in_zone(hass: HomeAssistant, aioclient_mock):
+async def test_freed_charge_point_event(hass: HomeAssistant, aioclient_mock):
     from pytest_homeassistant_custom_component.common import async_capture_events
 
-    from custom_components.enbw_laadpalen.const import EVENT_CHARGE_POINT_AVAILABLE
+    from custom_components.enbw_charging_stations.const import EVENT_CHARGE_POINT_AVAILABLE
 
     aioclient_mock.get(DETAIL_URL, json=DETAIL)
-    await setup(hass, entry())
+    e = entry()
+    await setup(hass, e)
+    coordinator = e.runtime_data.coordinators["123"]
     events = async_capture_events(hass, EVENT_CHARGE_POINT_AVAILABLE)
     points = DETAIL["chargePoints"]
     freed = {**DETAIL, "chargePoints": [points[0], {**points[1], "status": "AVAILABLE"}, *points[2:]]}
+    unknown = {**DETAIL, "chargePoints": [points[0], {**points[1], "status": "UNKNOWN"}, *points[2:]]}
     press = {"entity_id": eid(hass, "button", "refresh")}
 
-    aioclient_mock.clear_requests()
-    aioclient_mock.get(DETAIL_URL, json=freed)  # occupied -> available, but nobody is nearby
-    await hass.services.async_call("button", "press", press, blocking=True)
-    assert events == []
+    async def manual(payload):
+        aioclient_mock.clear_requests()
+        aioclient_mock.get(DETAIL_URL, json=payload)
+        await hass.services.async_call("button", "press", press, blocking=True)
+        await hass.async_block_till_done()
 
-    aioclient_mock.clear_requests()
-    aioclient_mock.get(DETAIL_URL, json=DETAIL)  # occupied again
-    await hass.services.async_call("button", "press", press, blocking=True)
-    hass.states.async_set("person.alice", "home", {"latitude": 52.3701, "longitude": 4.9001, "friendly_name": "Alice"})
-    await hass.async_block_till_done()
+    # automatic refresh, nobody in the zone: no event
     aioclient_mock.clear_requests()
     aioclient_mock.get(DETAIL_URL, json=freed)
-    await hass.services.async_call("button", "press", press, blocking=True)
+    await coordinator.async_auto_refresh()
+    assert events == []
+
+    # manual refresh (button/action): the event fires without anyone in the zone
+    await manual(DETAIL)  # occupied again
+    await manual(freed)
+    assert len(events) == 1 and events[0].data["persons"] == []
+
+    # unknown -> available counts as well
+    events.clear()
+    await manual(unknown)
+    await manual(freed)
+    assert len(events) == 1
+
+    # with someone in the zone the event lists the persons
+    events.clear()
+    await manual(DETAIL)
+    hass.states.async_set("person.alice", "home", {"latitude": 52.3701, "longitude": 4.9001, "friendly_name": "Alice"})
     await hass.async_block_till_done()
+    await manual(freed)
     assert len(events) == 1
     data = events[0].data
-    assert data["station_id"] == "123" and data["charge_point"] == "Laadpunt 2 - 150kW"
+    assert data["station_id"] == "123" and data["charge_point"] == "Charge point 2 - 150kW"
     assert data["persons"] == ["Alice"] and data["available"] == 3 and data["total"] == 4
-    assert (
-        hass.states.get(eid(hass, "event", "charge_point_event")).attributes["event_type"] == "charge_point_available"
-    )
+    assert hass.states.get(eid(hass, "event", "event")).attributes["event_type"] == "charge_point_available"
+
+    # available -> available is skipped
+    events.clear()
+    await manual(freed)
+    assert events == []
+
+    # out of service -> available fires
+    broken = {**DETAIL, "chargePoints": [points[0], {**points[1], "status": "OUT_OF_SERVICE"}, *points[2:]]}
+    await manual(broken)
+    await manual(freed)
+    assert len(events) == 1
+
+    # an automatic refresh never fires, not even with someone in the zone
+    events.clear()
+    await manual(DETAIL)
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(DETAIL_URL, json=freed)
+    await coordinator.async_auto_refresh()
+    assert events == []
+
+
+async def test_old_unique_ids_are_migrated_and_open_sensor_removed(hass: HomeAssistant, aioclient_mock):
+    from homeassistant.helpers import entity_registry as er
+
+    aioclient_mock.get(DETAIL_URL, json=DETAIL)
+    e = entry()
+    reg = er.async_get(hass)
+    e.add_to_hass(hass)
+    old = {
+        "sensor": ["free_points", "distance_to_person", "nearby_count", "last_update", "station_id", "distance_m"],
+        "binary_sensor": ["available", "paused", "open"],
+        "select": ["zone_refresh", "zone_stop_after"],
+        "switch": ["refresh_on_approach", "approach_only"],
+        "number": ["proximity_radius"],
+        "event": ["charge_point_event"],
+    }
+    for platform, keys in old.items():
+        for key in keys:
+            reg.async_get_or_create(platform, DOMAIN, f"123_{key}", config_entry=e)
+    await hass.config_entries.async_setup(e.entry_id)
+    await hass.async_block_till_done()
+    for platform, keys in old.items():
+        for key in keys:
+            assert reg.async_get_entity_id(platform, DOMAIN, f"123_{key}") is None, (platform, key)
+    for platform, key in [
+        ("sensor", "points_available"),
+        ("sensor", "person_distance"),
+        ("sensor", "data_timestamp"),
+        ("binary_sensor", "availability"),
+        ("binary_sensor", "error_paused"),
+        ("select", "zone_refresh_interval"),
+        ("switch", "zone_refresh"),
+        ("event", "event"),
+    ]:
+        assert eid(hass, platform, key), (platform, key)
+    assert eid(hass, "binary_sensor", "open") is None
+
+
+async def test_entity_ids_start_with_prefix(hass: HomeAssistant, aioclient_mock):
+    aioclient_mock.get(DETAIL_URL, json=DETAIL)
+    await setup(hass, entry())
+    ids = [s.entity_id for s in hass.states.async_all() if s.entity_id.split(".")[0] != "person"]
+    assert ids and all(i.split(".", 1)[1].startswith("enbw_chargepoint_") for i in ids), ids
 
 
 # ---------------------------------------------------------------- distance to nearest person and approach-only
 async def test_nearest_person_distance_sensor(hass: HomeAssistant, aioclient_mock):
     aioclient_mock.get(DETAIL_URL, json=DETAIL)
     await setup(hass, entry())
-    sensor = eid(hass, "sensor", "distance_to_person")
+    sensor = eid(hass, "sensor", "person_distance")
     assert hass.states.get(sensor).state == "unknown"
     hass.states.async_set("person.alice", "not_home", {"latitude": 53.0, "longitude": 6.0, "friendly_name": "Alice"})
     await hass.async_block_till_done()
     st = hass.states.get(sensor)
-    assert int(st.state) % 1000 == 0 and int(st.state) > 50_000  # far away: rounded to whole kilometers
+    assert float(st.state) > 50 and float(st.state) % 1 == 0  # far away: rounded to whole kilometers (state in km)
     assert st.attributes["person"] == "Alice" and st.attributes["in_zone"] is False
     hass.states.async_set("person.alice", "home", {"latitude": 52.3701, "longitude": 4.9001, "friendly_name": "Alice"})
     await hass.async_block_till_done()
     st = hass.states.get(sensor)
-    assert st.state == "10" and st.attributes["in_zone"] is True  # 13 m, rounded to 10 m
+    assert float(st.state) == 0.01 and st.attributes["in_zone"] is True  # 13 m, rounded to 10 m = 0.01 km
 
 
 async def test_zone_refresh_only_while_approaching(hass: HomeAssistant, aioclient_mock, monkeypatch, freezer):
@@ -742,7 +821,7 @@ async def test_zone_refresh_only_while_approaching(hass: HomeAssistant, aioclien
     await _advance(hass, freezer, 5)
     assert aioclient_mock.call_count == 3  # not getting closer any more: no refresh
     await hass.services.async_call(
-        "switch", "turn_off", {"entity_id": eid(hass, "switch", "approach_only")}, blocking=True
+        "switch", "turn_off", {"entity_id": eid(hass, "switch", "zone_refresh_approach")}, blocking=True
     )
     await _advance(hass, freezer, 5)
     assert aioclient_mock.call_count == 4  # approach-only off: refreshes as long as someone is in the zone
@@ -752,7 +831,7 @@ async def test_zone_refresh_only_while_approaching(hass: HomeAssistant, aioclien
 async def test_diagnostics_redacts_key_and_includes_raw_response(hass: HomeAssistant, aioclient_mock):
     from homeassistant.helpers import device_registry as dr
 
-    from custom_components.enbw_laadpalen.diagnostics import (
+    from custom_components.enbw_charging_stations.diagnostics import (
         async_get_config_entry_diagnostics,
         async_get_device_diagnostics,
     )
@@ -773,13 +852,13 @@ async def test_map_marker_state_shows_availability(hass: HomeAssistant, aioclien
     aioclient_mock.get(DETAIL_URL, json=DETAIL)
     await setup(hass, entry())
     state = hass.states.get(eid(hass, "sensor", "location"))
-    assert state.state == "2/4 beschikbaar"  # the marker is a sensor, so the state is the availability text
+    assert state.state == "2/4 available"  # the marker is a sensor, so the state is the availability text
     assert state.attributes["visual"] == "🅿️/⛔/🅿️/⚫" and state.attributes["available"] == 2
     assert state.attributes["latitude"] == 52.37  # still a working map marker
     aioclient_mock.clear_requests()
     aioclient_mock.get(DETAIL_URL, status=500)
     await hass.services.async_call("button", "press", {"entity_id": eid(hass, "button", "refresh")}, blocking=True)
-    assert hass.states.get(eid(hass, "sensor", "location")).state == "Onbekend"
+    assert hass.states.get(eid(hass, "sensor", "location")).state == "Unknown"
 
 
 async def test_backoff_does_not_clash_with_coordinator_base_class(hass: HomeAssistant, aioclient_mock):
@@ -864,7 +943,7 @@ async def test_refresh_service_and_stale_data(hass: HomeAssistant, aioclient_moc
 async def test_removing_station_device_removes_the_station(hass: HomeAssistant, aioclient_mock):
     from homeassistant.helpers import device_registry as dr
 
-    from custom_components.enbw_laadpalen import async_remove_config_entry_device
+    from custom_components.enbw_charging_stations import async_remove_config_entry_device
 
     aioclient_mock.get(DETAIL_URL, json=DETAIL)
     e = entry()
@@ -885,11 +964,11 @@ async def test_tracker_named_after_street_and_diagnostic_categories(hass: HomeAs
     await setup(hass, e)
     reg = er.async_get(hass)
     tracker = reg.async_get(eid(hass, "sensor", "location"))
-    assert tracker.entity_id == "sensor.voorbeeldlaan_14"
+    assert tracker.entity_id == "sensor.enbw_chargepoint_proefstraat_location"
     assert hass.states.get(tracker.entity_id).name == "Voorbeeldlaan 14"
-    for key in ("max_power", "distance_to_person", "plug_types"):
+    for key in ("power_max", "person_distance", "connector_types"):
         assert reg.async_get(eid(hass, "sensor", key)).entity_category is EntityCategory.DIAGNOSTIC
-    assert reg.async_get(eid(hass, "sensor", "plug_types")).disabled_by is not None
+    assert reg.async_get(eid(hass, "sensor", "connector_types")).disabled_by is not None
 
 
 async def test_map_marker_logo_option_and_old_tracker_cleanup(hass: HomeAssistant, aioclient_mock):
@@ -936,3 +1015,52 @@ async def test_station_map_position_can_be_overridden_and_reset(hass: HomeAssist
     await edit({"reset_location": True})
     assert "lat_override" not in e.options["stations"][0]
     assert hass.states.get(eid(hass, "sensor", "location")).attributes["latitude"] == 52.37
+
+
+# ---------------------------------------------------------------- companion app activity
+async def test_activity_filters_zone_and_fires_person_event(hass: HomeAssistant, aioclient_mock):
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+    from pytest_homeassistant_custom_component.common import MockConfigEntry, async_capture_events
+
+    from custom_components.enbw_charging_stations.const import EVENT_PERSON_IN_ZONE
+
+    aioclient_mock.get(DETAIL_URL, json=DETAIL)
+    e = entry()
+    await setup(hass, e)
+    events = async_capture_events(hass, EVENT_PERSON_IN_ZONE)
+
+    phone = MockConfigEntry(domain="mobile_app")
+    phone.add_to_hass(hass)
+    device = dr.async_get(hass).async_get_or_create(
+        config_entry_id=phone.entry_id, identifiers={("mobile_app", "phone")}
+    )
+    reg = er.async_get(hass)
+    reg.async_get_or_create("device_tracker", "mobile_app", "phone", device_id=device.id, suggested_object_id="phone")
+    reg.async_get_or_create(
+        "sensor", "mobile_app", "phone_detected_activity", device_id=device.id, suggested_object_id="phone_activity"
+    )
+    coords = {"latitude": 52.3701, "longitude": 4.9001, "friendly_name": "Alice"}
+    person = {**coords, "device_trackers": ["device_tracker.phone"]}
+    nearby = eid(hass, "sensor", "person_nearby")
+
+    # walking: ignored
+    hass.states.async_set("sensor.phone_activity", "walking")
+    hass.states.async_set("person.alice", "home", person)
+    await hass.async_block_till_done()
+    assert hass.states.get(nearby).state == "None" and events == []
+
+    # driving: counts and fires the event
+    hass.states.async_set("sensor.phone_activity", "in_vehicle")
+    hass.states.async_set("person.alice", "home", {**person, "latitude": 52.3702})
+    await hass.async_block_till_done()
+    assert hass.states.get(nearby).state == "Alice"
+    assert len(events) == 1 and events[0].data["activity"] == "in_vehicle" and events[0].data["station_id"] == "123"
+
+    # sensor unavailable: the person counts as before
+    hass.states.async_set("person.alice", "not_home", {**coords, "latitude": 53.0, "longitude": 6.0})
+    await hass.async_block_till_done()
+    hass.states.async_set("sensor.phone_activity", "unavailable")
+    hass.states.async_set("person.alice", "home", person)
+    await hass.async_block_till_done()
+    assert hass.states.get(nearby).state == "Alice" and len(events) == 2

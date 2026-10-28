@@ -1,0 +1,6 @@
+refresh:
+  target:
+    device:
+      integration: enbw_charging_stations
+    entity:
+      integration: enbw_charging_stations
