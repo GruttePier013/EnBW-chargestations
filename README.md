@@ -2,6 +2,10 @@
 
 # EnBW Laadpalen
 
+[![Release](https://img.shields.io/github/v/release/GruttePier013/EnBW-chargestations)](https://github.com/GruttePier013/EnBW-chargestations/releases)
+[![License](https://img.shields.io/github/license/GruttePier013/EnBW-chargestations)](LICENSE)
+[![Installs](https://img.shields.io/badge/dynamic/json?url=https://analytics.home-assistant.io/custom_integrations.json&query=$.enbw_charging_stations.total&label=Usage&suffix=%20installs&cacheSeconds=15600)](https://analytics.home-assistant.io/custom_integrations.json)
+
 Home Assistant-integratie die laat zien **welke EnBW-laadpunten nu vrij zijn**. Zoek laadpalen in een zone op de kaart, voeg ze toe als eigen apparaat en laat Home Assistant ze automatisch verversen wanneer jij in de buurt komt.
 
 - Aantal vrije laadpunten per laadpaal, plus de status per laadpunt, vermogen, connectoren en openingstijden
@@ -113,11 +117,3 @@ Is de laatste succesvolle update ouder dan 1 dag (bijvoorbeeld bij vernieuwingsf
 ## Beperkingen
 - De EnBW-API is niet officieel gedocumenteerd; de velden zijn afgeleid van de EnBW-kaart en kunnen veranderen.
 - Statussen die op een defect duiden (bijv. `OUT_OF_SERVICE`, `INOPERATIVE`, `FAULTED`) tellen als *buiten werking*; andere onbekende statussen tellen als bezet.
-- Gebruik de API terughoudend: verversen staat standaard op *Nooit* (knop, nabijheid of een eigen automatisering).
-
-## Ontwikkelen
-```
-pip install -r requirements_test.txt
-ruff check .
-pytest
-```
