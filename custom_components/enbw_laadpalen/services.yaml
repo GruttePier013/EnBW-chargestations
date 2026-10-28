@@ -1,6 +1,0 @@
-refresh:
-  target:
-    device:
-      integration: enbw_laadpalen
-    entity:
-      integration: enbw_laadpalen
